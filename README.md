@@ -1,145 +1,53 @@
 # ₿ BITPULSE — Bitcoin Dashboard
 
-> Un dashboard Bitcoin completo en **un solo archivo `index.html`**. Sin dependencias. Sin build. Listo para GitHub Pages.
+**BitPulse** is a comprehensive command center for the Bitcoin ecosystem. A real-time monitoring tool designed to deliver maximum insight with zero friction: no installations, no external databases, and total privacy.
+
+### 🌐 Live Access
+> **Explore the live dashboard at:** > [**https://atrumin16.github.io/BitPulse/**](https://atrumin16.github.io/BitPulse/)
 
 ---
 
-## 🚀 Deploy en GitHub Pages (2 pasos)
+## ✨ The BitPulse Ecosystem
 
-### Paso 1 — Sube el archivo
-```bash
-# Opción A: crea un repo nuevo en GitHub y sube index.html
-# (drag & drop en la interfaz web de GitHub)
+### 📊 Market Intelligence
+* **Live Ticker:** Real-time price tracking for BTC and the top 8 cryptocurrencies with visual volatility indicators.
+* **Global Metrics:** Market Cap, 24h Volume, and Circulating Supply with dynamic progress bars.
+* **On-Chain Analysis:** Current Block Height (via Blockchain.info) and network data including hash rate, mining revenue, and mempool status.
+* **Sentiment:** *Fear & Greed Index* featuring an animated gauge for market psychology.
+* **Halving Tracker:** Precise real-time countdown to the next block reward halving event.
 
-# Opción B: vía git
-git init
-git add index.html
-git commit -m "init: BITPULSE Bitcoin Dashboard"
-git remote add origin https://github.com/TU_USUARIO/bitpulse.git
-git push -u origin main
-```
+### 🧮 Financial Tools
+* **Universal Converter:** Instant transitions between BTC, Satoshis, and 12 fiat currencies (USD, EUR, MXN, ARS, etc.).
+* **DCA Calculator:** Dollar Cost Averaging simulations to analyze historical returns and average entry prices.
+* **Portfolio Tracker:** Local asset management. Record your entries to visualize P&L (Profit/Loss) and break-even points in real-time.
+* **Smart Alerts:** Browser-based notifications configurable for price breakouts or sudden percentage changes.
 
-### Paso 2 — Activa GitHub Pages
-```
-GitHub repo → Settings → Pages → Source: main / root → Save
-```
-
-✅ Tu app estará en: `https://TU_USUARIO.github.io/bitpulse/`
+### 📰 News Terminal
+* Specialized Bitcoin news feed powered by CryptoPanic to keep you ahead of market-moving events.
 
 ---
 
-## ✨ Funcionalidades
+## 🛠️ Project Philosophy
 
-### 📊 Dashboard
-- **Precio en vivo** con flash visual (verde/rojo) al cambiar
-- **Ticker strip** con 8 criptomonedas (BTC, ETH, BNB, SOL, XRP, ADA, DOGE, AVAX)
-- **Market Cap**, Volumen 24h, Supply circulante con barra de progreso
-- **Block Height** actual (via Blockchain.info)
-- **Rangos de precio** 24H / 7D / ATH con barras visuales interactivas
-- **Countdown Halving** en tiempo real (días · horas · minutos · segundos)
-- **Fear & Greed Index** con gauge animado (alternative.me)
-- **Dominancia BTC** con mini sparkline
-- **BTC en 12 monedas** (USD, EUR, GBP, JPY, BRL, CAD, AUD, CHF, MXN, INR, KRW, ARS)
-- **Métricas on-chain**: hash rate, mining revenue, mempool, fees (mempool.space)
-- **Gráfico de precio 7 días** (simulado con tendencia real)
-
-### 🔁 Converter
-- Conversión en tiempo real entre **BTC ↔ SATS ↔ USD / EUR / GBP / JPY / BRL**
-- Presets rápidos: 0.001 / 0.01 / 0.1 / 1 / 10 / 100 BTC
-- **Tabla de referencia** con 12 monedas: 1 BTC / 1000 USD / 1M sats
-
-### 💰 DCA Calculator
-- **Dollar Cost Averaging**: frecuencia diaria / semanal / mensual
-- Precio de inicio personalizable (o usa el precio actual)
-- **Precio objetivo de salida** opcional
-- Resultados: BTC acumulado, precio promedio, valor actual, P&L, ROI
-- Barras visuales comparando invertido vs valor actual
-
-### 📁 Portfolio Tracker
-- **Agrega transacciones** (cantidad BTC + precio de compra)
-- Cálculo de P&L por entrada
-- **Resumen total**: BTC, invertido, valor actual, P&L, ROI
-- **Precio de break-even** calculado automáticamente
-- Datos guardados en `localStorage` (persisten al cerrar el navegador)
-
-### 🔔 Price Alerts
-- Alertas por **precio ABOVE / BELOW** o **% de cambio**
-- Usa la **Notifications API** del navegador
-- Se disparan mientras la pestaña esté abierta
-- Estado visual (activo / triggered)
-- Alertas guardadas en `localStorage`
-
-### 📰 News
-- Feed de noticias Bitcoin vía CryptoPanic API
-- Fallback con enlaces directos si la API no responde
+BitPulse is built on simplicity and technical efficiency:
+* **Single-File Architecture:** The entire power of the dashboard resides within a single `index.html` file.
+* **Local Privacy:** Your portfolio data and alerts are stored exclusively in your browser (`localStorage`). No data is sent to external servers.
+* **Extreme Lightweight:** No heavy frameworks, no third-party dependencies, and optimized for instant loading.
 
 ---
 
-## 🌐 APIs utilizadas (todas gratuitas, sin API key)
+## 📱 Multi-Device Experience
 
-| API | Datos | Límite |
-|-----|-------|--------|
-| [CoinGecko](https://api.coingecko.com) | Precio BTC, market cap, volumen, ATH, supply, top coins | 10-30 req/min |
-| [Blockchain.info](https://blockchain.info/q/getblockcount) | Block height actual | Generoso |
-| [Alternative.me](https://api.alternative.me/fng/) | Fear & Greed Index | Sin límite conocido |
-| [Open Exchange Rates](https://open.er-api.com/v6/latest/USD) | Tasas de cambio fiat | 1500 req/mes |
-| [Mempool.space](https://mempool.space/api) | Mempool, fees recomendados | Sin límite |
-| [CryptoPanic](https://cryptopanic.com/api/) | Noticias Bitcoin | API pública limitada |
-
----
-
-## 🛠️ Estructura del proyecto
-
-```
-bitpulse/
-└── index.html     # Todo el app (HTML + CSS + JS) — ~900 líneas
-```
-
-Un solo archivo. Nada más.
-
----
-
-## ⚙️ Personalización
-
-### Cambiar intervalo de refresco (por defecto 60s)
-```js
-// Busca en app.js inline:
-S.refreshIn = 60;  // ← cambia a 30 para 30s
-```
-
-### Cambiar tema de colores
-```css
-/* Busca las CSS variables al inicio del <style>: */
---btc: #f7931a;   /* Color Bitcoin */
---green: #10d98a; /* Positivo */
---red: #ff4d6a;   /* Negativo */
---void: #03060a;  /* Fondo más oscuro */
-```
-
-### Añadir monedas al converter
-```js
-// En el objeto CINPS:
-MXN: {id:'cMXN', toUSD: v => v / (S.fx.MXN || 17)}
-```
-
----
-
-## 📱 Responsive
-
-| Pantalla | Comportamiento |
-|----------|---------------|
-| Desktop 1440px+ | Grid completo 12 columnas |
-| Tablet 768-1100px | Grid 6 columnas |
-| Mobile < 768px | Columna única, nav oculto |
+The dashboard is **fully responsive**, automatically adapting to your screen:
+* **Desktop:** Full 12-column panel view for deep analysis.
+* **Tablet:** Interface optimized for touch interaction and clear legibility.
+* **Mobile:** Compact vertical design ideal for quick checks on the go.
 
 ---
 
 ## ⚠️ Disclaimer
-
-Esta aplicación es únicamente con fines informativos. Nada aquí constituye asesoramiento financiero. Las criptomonedas son activos de alta volatilidad. Haz tu propia investigación (DYOR) antes de invertir.
+*This application is for informational purposes only. Content does not constitute financial advice. Cryptocurrencies are high-volatility assets. Always conduct your own research (DYOR) before making any investment decisions.*
 
 ---
 
-## 📄 Licencia
-
-MIT — libre para usar, modificar y distribuir.
+Would you like me to add a "Built With" section to highlight the specific APIs used in this English version?

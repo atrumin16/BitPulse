@@ -1,1464 +1,1416 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="dark">
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>BITPULSE — Bitcoin Dashboard</title>
-<meta name="description" content="Professional Bitcoin dashboard: live price, charts, converter, DCA calculator, fear & greed, mempool, halving countdown and more."/>
+<meta name="description" content="Bitcoin dashboard: live price, TradingView chart, real-time converter, DCA calculator, portfolio tracker, price alerts and crypto news."/>
 <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>₿</text></svg>"/>
+
+<!-- Tailwind CSS CDN -->
+<script src="https://cdn.tailwindcss.com"></script>
+
+<!-- Google Fonts -->
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:wght@300;400;500;700&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=JetBrains+Mono:ital,wght@0,300;0,400;0,500;0,700;1,400&display=swap" rel="stylesheet"/>
+
+<script>
+  tailwind.config = {
+    darkMode: 'class',
+    theme: {
+      extend: {
+        fontFamily: {
+          sans:  ['Syne', 'sans-serif'],
+          mono:  ['JetBrains Mono', 'monospace'],
+        },
+        colors: {
+          void:   '#03060a',
+          ink:    '#060c14',
+          deep:   '#0a1220',
+          surface:'#0f1929',
+          card:   '#111e2e',
+          edge:   '#162538',
+          rim:    '#1c2f44',
+          line:   '#1e3248',
+          mute:   '#243d57',
+          btc:    '#f7931a',
+          btc2:   '#ffa733',
+          btc3:   '#ffbb55',
+          btcD:   '#c4720e',
+          acid:   '#10d98a',
+          ruby:   '#ff4d6a',
+          sky:    '#3b9eff',
+          amber:  '#ffd14d',
+          lilac:  '#9f7aea',
+        },
+        animation: {
+          'fade-up':     'fadeUp .35s ease forwards',
+          'pulse-dot':   'pulseDot 2s ease-out infinite',
+          'glow-orb':    'glowOrb 4s ease-in-out infinite',
+          'ticker-roll': 'tickerRoll 35s linear infinite',
+          'shimmer':     'shimmer 1.8s ease-in-out infinite',
+          'spin-slow':   'spin 8s linear infinite',
+        },
+        keyframes: {
+          fadeUp:     {from:{opacity:'0',transform:'translateY(14px)'},to:{opacity:'1',transform:'translateY(0)'}},
+          pulseDot:   {'0%':{boxShadow:'0 0 0 0 rgba(16,217,138,.7)'},'70%':{boxShadow:'0 0 0 9px rgba(16,217,138,0)'},'100%':{boxShadow:'0 0 0 0 rgba(16,217,138,0)'}},
+          glowOrb:    {'0%,100%':{boxShadow:'0 0 40px rgba(247,147,26,.35),0 0 80px rgba(247,147,26,.1)'},'50%':{boxShadow:'0 0 80px rgba(247,147,26,.55),0 0 160px rgba(247,147,26,.2)'}},
+          tickerRoll: {from:{transform:'translateX(0)'},to:{transform:'translateX(-50%)'}},
+          shimmer:    {from:{'background-position':'200% 0'},to:{'background-position':'-200% 0'}},
+        },
+        backgroundImage: {
+          'shimmer-bg': 'linear-gradient(90deg,transparent 0%,rgba(255,255,255,.04) 50%,transparent 100%)',
+        },
+      }
+    }
+  }
+</script>
+
 <style>
-/* ═══════════════════════════════════════════════════
-   BITPULSE — All-in-one Bitcoin Dashboard
-   Aesthetic: Luxury dark terminal · Amber & void
-   ═══════════════════════════════════════════════════ */
-:root{
-  --void:#03060a;
-  --bg1:#060b12;
-  --bg2:#0a1220;
-  --bg3:#0f1a2e;
-  --s1:#101e30;
-  --s2:#162538;
-  --s3:#1c2e44;
-  --b1:#1e2f45;
-  --b2:#264058;
-  --b3:#2e506e;
-  --btc:#f7931a;
-  --btc2:#ffa733;
-  --btc3:#ffbb55;
-  --btcD:#c4720e;
-  --btcG:rgba(247,147,26,.18);
-  --btcGS:rgba(247,147,26,.08);
-  --green:#10d98a;
-  --greenD:rgba(16,217,138,.12);
-  --red:#ff4d6a;
-  --redD:rgba(255,77,106,.12);
-  --blue:#3b9eff;
-  --blueD:rgba(59,158,255,.12);
-  --yellow:#ffd14d;
-  --purple:#9f7aea;
-  --t1:#f0f6ff;
-  --t2:#8ba8c4;
-  --t3:#4d6e8a;
-  --t4:#2a4560;
-  --mono:'JetBrains Mono',monospace;
-  --sans:'Syne',sans-serif;
-  --r8:8px;--r12:12px;--r16:16px;--r20:20px;--r24:24px;
-  --shadow:0 4px 24px rgba(0,0,0,.4);
-  --shadowBTC:0 0 40px rgba(247,147,26,.2);
-}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{font-size:15px;scroll-behavior:smooth}
-body{
-  background:var(--void);color:var(--t1);font-family:var(--sans);
-  min-height:100vh;overflow-x:hidden;cursor:default;
-  -webkit-font-smoothing:antialiased;
-}
-/* ─ SCROLLBAR ─ */
-::-webkit-scrollbar{width:4px;height:4px}
-::-webkit-scrollbar-track{background:var(--bg1)}
-::-webkit-scrollbar-thumb{background:var(--b2);border-radius:2px}
-::-webkit-scrollbar-thumb:hover{background:var(--btc)}
+  /* ─ Base ─ */
+  * { box-sizing: border-box; }
+  body { background:#03060a; font-family:'Syne',sans-serif; -webkit-font-smoothing:antialiased; overflow-x:hidden; }
+  ::-webkit-scrollbar { width:4px; height:4px; }
+  ::-webkit-scrollbar-track { background:#060c14; }
+  ::-webkit-scrollbar-thumb { background:#1c2f44; border-radius:2px; }
+  ::-webkit-scrollbar-thumb:hover { background:#f7931a; }
+  input::-webkit-outer-spin-button,
+  input::-webkit-inner-spin-button { -webkit-appearance:none; }
+  input[type=number] { -moz-appearance:textfield; }
 
-/* ─ CANVAS BACKGROUND ─ */
-#bgCanvas{position:fixed;inset:0;z-index:0;pointer-events:none;opacity:.6}
+  /* ─ Particle canvas ─ */
+  #bgCanvas { position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.55; }
 
-/* ─ NOISE OVERLAY ─ */
-body::before{
-  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.04'/%3E%3C/svg%3E");
-  opacity:.4;
-}
+  /* ─ Grid overlay ─ */
+  .grid-overlay {
+    position:fixed; inset:0; z-index:1; pointer-events:none;
+    background-image: linear-gradient(rgba(247,147,26,.02) 1px,transparent 1px),
+                      linear-gradient(90deg,rgba(247,147,26,.02) 1px,transparent 1px);
+    background-size:56px 56px;
+  }
 
-/* ─ GRID PATTERN ─ */
-body::after{
-  content:'';position:fixed;inset:0;z-index:1;pointer-events:none;
-  background-image:linear-gradient(rgba(247,147,26,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(247,147,26,.025) 1px,transparent 1px);
-  background-size:60px 60px;
-}
+  /* ─ Noise ─ */
+  .noise {
+    position:fixed; inset:0; z-index:1; pointer-events:none; opacity:.3;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='.045'/%3E%3C/svg%3E");
+  }
 
-/* ─ APP WRAPPER ─ */
-#app{position:relative;z-index:2;display:flex;flex-direction:column;min-height:100vh}
+  /* ─ App ─ */
+  #app { position:relative; z-index:2; min-height:100vh; display:flex; flex-direction:column; }
 
-/* ════════ TOPBAR ════════ */
-.topbar{
-  display:flex;align-items:center;gap:16px;
-  padding:0 28px;height:56px;
-  background:rgba(6,11,18,.82);
-  backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);
-  border-bottom:1px solid var(--b1);
-  position:sticky;top:0;z-index:100;
-}
-.tb-logo{display:flex;align-items:center;gap:10px;text-decoration:none;flex-shrink:0}
-.tb-logo-icon{
-  width:32px;height:32px;border-radius:8px;
-  background:linear-gradient(135deg,var(--btcD),var(--btc));
-  display:flex;align-items:center;justify-content:center;
-  font-size:18px;font-weight:700;color:#000;
-  box-shadow:0 0 16px var(--btcG);
-}
-.tb-logo-text{font-size:17px;font-weight:800;letter-spacing:2px;color:var(--t1)}
-.tb-logo-text span{color:var(--btc)}
-.tb-nav{display:flex;gap:2px;margin-left:32px}
-.tb-link{
-  padding:6px 14px;border-radius:7px;font-size:12px;font-weight:600;
-  letter-spacing:.8px;text-transform:uppercase;text-decoration:none;
-  color:var(--t3);transition:all .18s;cursor:pointer;border:none;background:none;
-}
-.tb-link:hover{color:var(--t2);background:var(--s1)}
-.tb-link.active{color:var(--btc);background:rgba(247,147,26,.1)}
-.tb-spacer{flex:1}
-.tb-pills{display:flex;align-items:center;gap:10px}
-.live-chip{
-  display:flex;align-items:center;gap:6px;
-  padding:4px 10px;border-radius:20px;
-  background:rgba(16,217,138,.08);border:1px solid rgba(16,217,138,.2);
-  font-family:var(--mono);font-size:10px;font-weight:500;color:var(--green);
-  letter-spacing:1px;
-}
-.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:livePulse 2s ease-out infinite}
-@keyframes livePulse{0%{box-shadow:0 0 0 0 rgba(16,217,138,.6)}70%{box-shadow:0 0 0 8px rgba(16,217,138,0)}100%{box-shadow:0 0 0 0 rgba(16,217,138,0)}}
-.tb-time{font-family:var(--mono);font-size:11px;color:var(--t4)}
-.theme-btn{
-  width:32px;height:32px;border-radius:8px;border:1px solid var(--b1);
-  background:var(--s1);cursor:pointer;display:flex;align-items:center;justify-content:center;
-  font-size:15px;transition:all .18s;
-}
-.theme-btn:hover{border-color:var(--btc);background:var(--btcGS)}
+  /* ─ Page transitions ─ */
+  .page { display:none; }
+  .page.active { display:block; animation:fadeUp .35s ease forwards; }
+  @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
 
-/* ════════ MAIN ════════ */
-.main{flex:1;padding:28px 28px 80px;max-width:1440px;margin:0 auto;width:100%}
+  /* ─ Ticker ─ */
+  .ticker-inner { display:flex; gap:40px; animation:tickerRoll 35s linear infinite; white-space:nowrap; }
+  .ticker-inner:hover { animation-play-state:paused; }
 
-/* ─ PAGE SYSTEM ─ */
-.page{display:none;animation:fadeSlide .3s ease}
-.page.active{display:block}
-@keyframes fadeSlide{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+  /* ─ Skeleton shimmer ─ */
+  .skeleton {
+    background: linear-gradient(90deg,#0f1929 25%,#162538 50%,#0f1929 75%);
+    background-size:400% 100%;
+    animation:shimmer 1.8s ease-in-out infinite;
+    border-radius:8px;
+  }
+  @keyframes shimmer { from{background-position:200% 0} to{background-position:-200% 0} }
 
-/* ════════ DASHBOARD PAGE ════════ */
+  /* ─ Price flash ─ */
+  .flash-up   { color:#10d98a !important; text-shadow:0 0 40px rgba(16,217,138,.5); }
+  .flash-down { color:#ff4d6a !important; text-shadow:0 0 40px rgba(255,77,106,.5); }
 
-/* ─ HERO BAND ─ */
-.hero-band{
-  display:grid;grid-template-columns:1fr auto 1fr;
-  align-items:center;gap:20px;
-  padding:32px 36px;
-  background:linear-gradient(135deg,var(--s1) 0%,rgba(247,147,26,.04) 50%,var(--s1) 100%);
-  border:1px solid var(--b1);border-radius:var(--r24);
-  margin-bottom:20px;position:relative;overflow:hidden;
-}
-.hero-band::before{
-  content:'₿';position:absolute;right:-20px;top:50%;transform:translateY(-50%);
-  font-size:220px;font-weight:800;color:rgba(247,147,26,.03);line-height:1;
-  font-family:var(--mono);pointer-events:none;
-}
-.hero-left{}
-.hero-pair-label{
-  font-family:var(--mono);font-size:10px;letter-spacing:2.5px;color:var(--t4);
-  text-transform:uppercase;margin-bottom:6px;
-}
-.hero-price-row{display:flex;align-items:baseline;gap:6px}
-.hero-curr{font-family:var(--mono);font-size:28px;color:var(--btcD);font-weight:300}
-.hero-price{
-  font-size:64px;font-weight:800;line-height:1;color:var(--t1);
-  letter-spacing:-2px;transition:color .5s;
-  font-family:var(--sans);
-}
-.hero-price.up{color:var(--green)}
-.hero-price.dn{color:var(--red)}
-.hero-change-row{display:flex;align-items:center;gap:10px;margin-top:10px;flex-wrap:wrap}
-.badge{
-  display:inline-flex;align-items:center;gap:4px;
-  padding:3px 10px;border-radius:20px;
-  font-family:var(--mono);font-size:12px;font-weight:500;
-}
-.badge.up{background:var(--greenD);color:var(--green);border:1px solid rgba(16,217,138,.2)}
-.badge.dn{background:var(--redD);color:var(--red);border:1px solid rgba(255,77,106,.2)}
-.badge.flat{background:var(--s2);color:var(--t3);border:1px solid var(--b1)}
-.badge.info{background:var(--blueD);color:var(--blue);border:1px solid rgba(59,158,255,.2)}
-.hero-center{text-align:center}
-.hero-btc-icon{
-  width:80px;height:80px;border-radius:50%;
-  background:linear-gradient(135deg,var(--btcD),var(--btc2));
-  display:flex;align-items:center;justify-content:center;
-  font-size:44px;font-weight:800;color:#000;
-  box-shadow:0 0 60px rgba(247,147,26,.35),0 0 120px rgba(247,147,26,.12);
-  animation:iconGlow 4s ease-in-out infinite;margin:0 auto 10px;
-}
-@keyframes iconGlow{
-  0%,100%{box-shadow:0 0 40px rgba(247,147,26,.35),0 0 80px rgba(247,147,26,.12)}
-  50%{box-shadow:0 0 80px rgba(247,147,26,.5),0 0 160px rgba(247,147,26,.2)}
-}
-.hero-sats-label{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:2px;text-transform:uppercase}
-.hero-sats-value{font-family:var(--mono);font-size:18px;color:var(--btc);margin-top:2px}
-.hero-right{text-align:right}
-.hero-mini-stats{display:flex;flex-direction:column;gap:10px}
-.hms-row{display:flex;justify-content:flex-end;align-items:center;gap:12px}
-.hms-label{font-family:var(--mono);font-size:10px;color:var(--t4);letter-spacing:1px;text-transform:uppercase}
-.hms-value{font-family:var(--mono);font-size:14px;color:var(--t1)}
+  /* ─ Gauge SVG needle ─ */
+  #fgNeedle { transform-origin:80px 80px; transition:transform 1.5s cubic-bezier(.34,1.56,.64,1); }
+  #fgArc    { transition:stroke-dashoffset 1.5s ease; }
 
-/* ─ TICKER STRIP ─ */
-.ticker-strip{
-  display:flex;align-items:center;gap:0;
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r12);
-  padding:0 20px;height:40px;overflow:hidden;margin-bottom:20px;
-  font-family:var(--mono);font-size:12px;
-}
-.ticker-label{color:var(--btc);letter-spacing:1.5px;font-weight:500;padding-right:20px;border-right:1px solid var(--b1);margin-right:20px;white-space:nowrap}
-.ticker-scroll{flex:1;overflow:hidden;position:relative}
-.ticker-inner{display:flex;gap:32px;animation:tickerMove 30s linear infinite;white-space:nowrap}
-.ticker-inner:hover{animation-play-state:paused}
-@keyframes tickerMove{from{transform:translateX(0)}to{transform:translateX(-50%)}}
-.tick-item{display:flex;align-items:center;gap:8px;color:var(--t3)}
-.tick-item .tick-name{color:var(--t2)}
-.tick-item .tick-val{color:var(--t1)}
-.tick-item .tick-chg.up{color:var(--green)}
-.tick-item .tick-chg.dn{color:var(--red)}
+  /* ─ Range bar dot ─ */
+  .range-dot { position:absolute; top:50%; transform:translate(-50%,-50%); width:11px; height:11px; border-radius:50%; background:#f7931a; border:2px solid #03060a; box-shadow:0 0 10px #f7931a; transition:left .8s ease; }
+  .range-fill { height:100%; border-radius:4px; background:linear-gradient(90deg,#c4720e,#f7931a); transition:width .8s ease; }
 
-/* ─ MAIN GRID ─ */
-.dash-grid{display:grid;grid-template-columns:repeat(12,1fr);gap:16px}
+  /* ─ TradingView frame ─ */
+  #tvWidget { width:100%; height:100%; border:none; border-radius:0; }
 
-/* ─ CARDS ─ */
-.card{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r16);
-  padding:20px 22px;transition:border-color .2s,transform .2s;
-  position:relative;overflow:hidden;
-}
-.card:hover{border-color:var(--b2);transform:translateY(-1px)}
-.card-glow::after{
-  content:'';position:absolute;top:-60px;right:-60px;width:160px;height:160px;
-  border-radius:50%;background:radial-gradient(var(--btcGS),transparent 70%);
-  pointer-events:none;
-}
-.col-3{grid-column:span 3}
-.col-4{grid-column:span 4}
-.col-6{grid-column:span 6}
-.col-8{grid-column:span 8}
-.col-12{grid-column:span 12}
-.card-label{
-  font-family:var(--mono);font-size:10px;letter-spacing:2px;text-transform:uppercase;
-  color:var(--t4);margin-bottom:10px;display:flex;align-items:center;gap:6px;
-}
-.card-label svg{opacity:.6}
-.card-value{font-size:22px;font-weight:700;color:var(--t1);font-family:var(--mono)}
-.card-sub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:5px}
-.card-accent{color:var(--btc)}
+  /* ─ Halving units ─ */
+  .hc-flip { font-variant-numeric:tabular-nums; min-width:2ch; display:inline-block; }
 
-/* ─ SUPPLY BAR ─ */
-.supply-bar-track{
-  height:5px;background:var(--b1);border-radius:3px;margin-top:12px;overflow:hidden;
-}
-.supply-bar-fill{
-  height:100%;border-radius:3px;
-  background:linear-gradient(90deg,var(--btcD),var(--btc),var(--btc2));
-  transition:width 1.2s cubic-bezier(.4,0,.2,1);
-}
+  /* ─ Toast ─ */
+  .toast-enter { animation:toastIn .3s ease; }
+  @keyframes toastIn { from{opacity:0;transform:translateX(20px)} to{opacity:1;transform:translateX(0)} }
 
-/* ─ PRICE RANGE ─ */
-.range-wrap{margin-top:14px}
-.range-row{display:grid;grid-template-columns:36px 1fr 36px;align-items:center;gap:8px;margin-bottom:10px}
-.range-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--btc);text-transform:uppercase}
-.range-low,.range-high{font-family:var(--mono);font-size:10px;color:var(--t3);text-align:center}
-.range-track{position:relative;height:5px;background:var(--b1);border-radius:3px}
-.range-fill{
-  position:absolute;left:0;top:0;height:100%;border-radius:3px;
-  background:linear-gradient(90deg,var(--btcD),var(--btc));
-}
-.range-pos{
-  position:absolute;top:50%;transform:translate(-50%,-50%);
-  width:12px;height:12px;border-radius:50%;background:var(--btc2);
-  border:2px solid var(--void);box-shadow:0 0 10px var(--btc);
-}
+  /* ─ News card hover border glow ─ */
+  .news-card:hover { border-color:rgba(247,147,26,.3); box-shadow:0 0 24px rgba(247,147,26,.06); }
 
-/* ─ FEAR & GREED ─ */
-.fg-wrap{display:flex;flex-direction:column;align-items:center;gap:8px;padding:6px 0}
-.fg-gauge-svg{width:160px;height:90px}
-.fg-value-big{font-size:40px;font-weight:800;font-family:var(--mono)}
-.fg-label-big{font-size:11px;letter-spacing:2px;text-transform:uppercase;font-family:var(--mono)}
+  /* ─ Card top accent line ─ */
+  .card-accent-top::before { content:''; position:absolute; top:0; left:16px; right:16px; height:1px; background:linear-gradient(90deg,transparent,rgba(247,147,26,.4),transparent); }
 
-/* ─ HALVING ─ */
-.halving-countdown{display:flex;gap:12px;justify-content:center;margin-top:10px}
-.hc-unit{
-  display:flex;flex-direction:column;align-items:center;
-  background:var(--bg3);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:10px 14px;min-width:58px;
-}
-.hc-num{font-family:var(--mono);font-size:24px;font-weight:700;color:var(--btc);line-height:1}
-.hc-lbl{font-family:var(--mono);font-size:9px;color:var(--t4);letter-spacing:1.5px;text-transform:uppercase;margin-top:4px}
+  /* ─ Scrollbar in ticker ─ */
+  .ticker-scroll { overflow:hidden; }
 
-/* ─ MINI CHART (Canvas sparkline) ─ */
-.sparkline-canvas{width:100%;height:60px;margin-top:10px;border-radius:4px}
+  /* ─ Live dot pulse ─ */
+  .live-dot { width:7px; height:7px; border-radius:50%; background:#10d98a; animation:pulseDot 2s ease-out infinite; }
+  @keyframes pulseDot { 0%{box-shadow:0 0 0 0 rgba(16,217,138,.7)} 70%{box-shadow:0 0 0 9px rgba(16,217,138,0)} 100%{box-shadow:0 0 0 0 rgba(16,217,138,0)} }
 
-/* ─ CURRENCIES GRID ─ */
-.curr-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px}
-.curr-item{
-  display:flex;align-items:center;justify-content:space-between;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:9px 12px;transition:border-color .15s;
-}
-.curr-item:hover{border-color:var(--b2)}
-.curr-left{display:flex;align-items:center;gap:8px}
-.curr-flag{font-size:18px}
-.curr-code{font-family:var(--mono);font-size:11px;color:var(--t3)}
-.curr-val{font-family:var(--mono);font-size:13px;color:var(--t1);font-weight:500}
-.curr-sym{font-size:10px;color:var(--t4)}
+  /* ─ Active nav underline ─ */
+  .nav-link.active { color:#f7931a; }
+  .nav-link.active::after { content:''; position:absolute; bottom:-1px; left:0; right:0; height:1px; background:#f7931a; }
 
-/* ─ ON-CHAIN METRICS ─ */
-.onchain-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px}
-.oc-item{background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);padding:12px}
-.oc-lbl{font-family:var(--mono);font-size:9px;letter-spacing:1.5px;color:var(--t4);text-transform:uppercase;margin-bottom:5px}
-.oc-val{font-family:var(--mono);font-size:15px;color:var(--t1);font-weight:500}
-.oc-sub{font-family:var(--mono);font-size:10px;color:var(--t3);margin-top:2px}
+  /* ─ FG gradient arc ─ */
+  #fgGradTrack { transition: stroke-dashoffset 1.5s ease; }
 
-/* ─ SECTION HEADER ─ */
-.sect-hdr{
-  display:flex;align-items:center;gap:10px;margin-bottom:16px;
-}
-.sect-title{font-size:13px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;color:var(--t2)}
-.sect-line{flex:1;height:1px;background:var(--b1)}
-.sect-pill{
-  font-family:var(--mono);font-size:10px;color:var(--btc);
-  background:rgba(247,147,26,.1);border:1px solid rgba(247,147,26,.2);
-  padding:2px 8px;border-radius:10px;letter-spacing:.5px;
-}
-
-/* ════════ CONVERTER PAGE ════════ */
-.conv-layout{display:grid;grid-template-columns:480px 1fr;gap:24px;align-items:start}
-.conv-card{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:32px;
-}
-.conv-title{font-size:22px;font-weight:800;margin-bottom:6px}
-.conv-desc{font-size:13px;color:var(--t3);margin-bottom:28px}
-.conv-field{margin-bottom:16px}
-.conv-lbl{
-  display:flex;align-items:center;justify-content:space-between;
-  font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--t4);margin-bottom:7px;
-}
-.conv-lbl-curr{color:var(--btc)}
-.conv-inp-wrap{
-  display:flex;align-items:center;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  overflow:hidden;transition:border-color .18s;
-}
-.conv-inp-wrap:focus-within{border-color:var(--btc)}
-.conv-inp-icon{
-  padding:0 14px;font-size:18px;font-family:var(--mono);
-  color:var(--t3);border-right:1px solid var(--b1);white-space:nowrap;
-  min-width:48px;text-align:center;
-}
-.conv-inp{
-  flex:1;background:none;border:none;outline:none;
-  padding:13px 16px;font-family:var(--mono);font-size:19px;
-  color:var(--t1);width:0;
-}
-.conv-inp::-webkit-outer-spin-button,.conv-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.conv-sep{
-  display:flex;align-items:center;gap:12px;margin:8px 0;
-}
-.conv-sep-line{flex:1;height:1px;background:var(--b1)}
-.conv-sep-icon{
-  width:34px;height:34px;border-radius:50%;
-  background:var(--bg2);border:1px solid var(--b1);
-  display:flex;align-items:center;justify-content:center;
-  font-size:14px;color:var(--btc);cursor:pointer;transition:all .18s;flex-shrink:0;
-}
-.conv-sep-icon:hover{background:var(--btcGS);border-color:var(--btc)}
-.conv-rate-bar{
-  margin-top:20px;padding:14px 16px;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  font-family:var(--mono);font-size:12px;
-  display:flex;align-items:center;justify-content:space-between;
-}
-.conv-rate-lbl{color:var(--t4);letter-spacing:.5px}
-.conv-rate-val{color:var(--btc);font-weight:500}
-/* Quick presets */
-.quick-presets{display:flex;flex-wrap:wrap;gap:8px;margin:16px 0}
-.qp-btn{
-  padding:6px 14px;border-radius:var(--r8);
-  background:var(--bg3);border:1px solid var(--b1);
-  font-family:var(--mono);font-size:12px;color:var(--t3);
-  cursor:pointer;transition:all .15s;
-}
-.qp-btn:hover{border-color:var(--btc);color:var(--btc);background:var(--btcGS)}
-/* Conversion table */
-.conv-table-card{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:28px;
-}
-.conv-table{width:100%;border-collapse:collapse}
-.conv-table th{
-  font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--t4);padding:8px 12px;text-align:left;border-bottom:1px solid var(--b1);
-}
-.conv-table td{
-  padding:11px 12px;font-family:var(--mono);font-size:13px;
-  border-bottom:1px solid rgba(30,47,69,.5);
-}
-.conv-table tr:last-child td{border-bottom:none}
-.conv-table tr:hover td{background:var(--bg2)}
-.conv-table .td-flag{font-size:18px}
-.conv-table .td-curr{color:var(--t2)}
-.conv-table .td-val{color:var(--t1);font-weight:500}
-.conv-table .td-1k{color:var(--t3)}
-.conv-table .td-1m{color:var(--t3)}
-
-/* ════════ DCA PAGE ════════ */
-.dca-layout{display:grid;grid-template-columns:420px 1fr;gap:24px;align-items:start}
-.dca-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:32px}
-.dca-title{font-size:22px;font-weight:800;margin-bottom:6px}
-.dca-desc{font-size:13px;color:var(--t3);margin-bottom:28px}
-.dca-field{margin-bottom:20px}
-.dca-lbl{
-  font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--t4);margin-bottom:7px;display:block;
-}
-.dca-inp{
-  width:100%;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:12px 16px;font-family:var(--mono);font-size:16px;color:var(--t1);
-  outline:none;transition:border-color .18s;
-  -moz-appearance:textfield;
-}
-.dca-inp::-webkit-outer-spin-button,.dca-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.dca-inp:focus{border-color:var(--btc)}
-.toggle-group{display:flex;gap:6px}
-.tgl{
-  flex:1;padding:9px;border-radius:var(--r8);
-  background:var(--bg2);border:1px solid var(--b1);
-  font-family:var(--mono);font-size:12px;color:var(--t3);
-  cursor:pointer;transition:all .15s;text-align:center;
-}
-.tgl:hover{border-color:var(--b2);color:var(--t2)}
-.tgl.on{background:rgba(247,147,26,.12);border-color:var(--btc);color:var(--btc)}
-.dca-run-btn{
-  width:100%;padding:15px;border:none;border-radius:var(--r12);
-  background:linear-gradient(135deg,var(--btcD),var(--btc));
-  font-family:var(--sans);font-size:16px;font-weight:700;letter-spacing:2px;
-  color:#000;cursor:pointer;transition:all .2s;margin-top:8px;
-  text-transform:uppercase;
-}
-.dca-run-btn:hover{background:linear-gradient(135deg,var(--btc),var(--btc2));transform:translateY(-1px);box-shadow:0 8px 24px rgba(247,147,26,.3)}
-.dca-run-btn:active{transform:translateY(0)}
-/* Results */
-.dca-results{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);
-  padding:28px;min-height:300px;
-  display:flex;flex-direction:column;justify-content:center;
-}
-.dca-placeholder{
-  text-align:center;color:var(--t4);font-size:14px;
-  display:flex;flex-direction:column;align-items:center;gap:12px;
-}
-.dca-placeholder svg{opacity:.3}
-.dca-res-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.dca-res-item{
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r12);
-  padding:16px 18px;
-}
-.dca-res-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t4);margin-bottom:7px}
-.dca-res-val{font-family:var(--mono);font-size:20px;font-weight:700;color:var(--t1)}
-.dca-res-val.pos{color:var(--green)}
-.dca-res-val.neg{color:var(--red)}
-.dca-res-sub{font-family:var(--mono);font-size:11px;color:var(--t3);margin-top:4px}
-.dca-bar-section{margin-top:20px}
-.dca-bar-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t4);margin-bottom:8px}
-.dca-bar-track{height:8px;background:var(--b1);border-radius:4px;overflow:hidden}
-.dca-bar-fill{height:100%;border-radius:4px;transition:width 1.2s ease}
-.dca-bar-invested{background:var(--b3)}
-.dca-bar-profit{background:linear-gradient(90deg,var(--green),#00ff88)}
-.dca-bar-loss{background:linear-gradient(90deg,var(--red),#ff0066)}
-.dca-periods-note{
-  margin-top:16px;padding:12px 16px;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  font-family:var(--mono);font-size:11px;color:var(--t3);
-}
-
-/* ════════ PORTFOLIO PAGE ════════ */
-.portfolio-layout{display:grid;grid-template-columns:1fr 1fr;gap:24px}
-.port-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:28px}
-.port-title{font-size:18px;font-weight:700;margin-bottom:20px}
-.port-form{display:flex;flex-direction:column;gap:14px}
-.port-row{display:grid;grid-template-columns:1fr 1fr auto;gap:10px;align-items:end}
-.port-inp{
-  width:100%;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:10px 14px;font-family:var(--mono);font-size:14px;color:var(--t1);
-  outline:none;transition:border-color .18s;
-  -moz-appearance:textfield;
-}
-.port-inp::-webkit-outer-spin-button,.port-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.port-inp:focus{border-color:var(--btc)}
-.port-add-btn{
-  padding:10px 20px;border:none;border-radius:var(--r8);
-  background:var(--btc);color:#000;font-weight:700;font-size:13px;
-  cursor:pointer;white-space:nowrap;transition:all .15s;
-}
-.port-add-btn:hover{background:var(--btc2)}
-.port-del-btn{
-  width:34px;height:34px;border:1px solid var(--b1);border-radius:var(--r8);
-  background:var(--bg3);color:var(--red);font-size:16px;
-  cursor:pointer;display:flex;align-items:center;justify-content:center;
-  transition:all .15s;flex-shrink:0;
-}
-.port-del-btn:hover{background:var(--redD);border-color:var(--red)}
-.port-entries{display:flex;flex-direction:column;gap:8px;margin-top:6px;max-height:300px;overflow-y:auto}
-.port-entry{
-  display:grid;grid-template-columns:1fr auto auto auto auto;align-items:center;gap:10px;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:11px 14px;font-family:var(--mono);font-size:12px;
-}
-.port-entry-btc{color:var(--btc);font-weight:500}
-.port-entry-cost{color:var(--t3)}
-.port-entry-val{color:var(--t1);font-weight:500}
-.port-entry-pnl{}
-.port-entry-pnl.pos{color:var(--green)}
-.port-entry-pnl.neg{color:var(--red)}
-.port-empty{text-align:center;color:var(--t4);font-size:13px;padding:20px;font-family:var(--mono)}
-/* Portfolio summary */
-.port-summary{
-  display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:20px;
-}
-.port-sum-item{
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r12);padding:14px 16px;
-}
-.port-sum-lbl{font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t4);margin-bottom:6px}
-.port-sum-val{font-family:var(--mono);font-size:18px;font-weight:700;color:var(--t1)}
-.port-sum-val.pos{color:var(--green)}
-.port-sum-val.neg{color:var(--red)}
-
-/* ════════ ALERTS PAGE ════════ */
-.alerts-layout{display:grid;grid-template-columns:400px 1fr;gap:24px;align-items:start}
-.alert-card{background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:28px}
-.alert-title{font-size:18px;font-weight:700;margin-bottom:6px}
-.alert-desc{font-size:13px;color:var(--t3);margin-bottom:22px}
-.alert-form{display:flex;flex-direction:column;gap:14px}
-.alert-inp-row{display:flex;gap:10px}
-.alert-inp{
-  flex:1;background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:11px 14px;font-family:var(--mono);font-size:15px;color:var(--t1);
-  outline:none;transition:border-color .18s;
-  -moz-appearance:textfield;
-}
-.alert-inp::-webkit-outer-spin-button,.alert-inp::-webkit-inner-spin-button{-webkit-appearance:none}
-.alert-inp:focus{border-color:var(--btc)}
-.alert-type-sel{
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:11px 14px;font-family:var(--mono);font-size:14px;color:var(--t1);
-  outline:none;cursor:pointer;
-}
-.alert-add-btn{
-  padding:12px;border:none;border-radius:var(--r8);
-  background:linear-gradient(135deg,var(--btcD),var(--btc));
-  font-family:var(--sans);font-size:14px;font-weight:700;
-  color:#000;cursor:pointer;transition:all .15s;letter-spacing:1px;
-}
-.alert-add-btn:hover{background:linear-gradient(135deg,var(--btc),var(--btc2))}
-.alerts-list{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r20);padding:28px;
-}
-.alert-item{
-  display:flex;align-items:center;gap:14px;
-  background:var(--bg2);border:1px solid var(--b1);border-radius:var(--r8);
-  padding:13px 16px;margin-bottom:10px;
-  font-family:var(--mono);font-size:13px;
-  transition:border-color .15s;
-}
-.alert-item.triggered{border-color:var(--btc);background:var(--btcGS)}
-.alert-item.triggered-up{border-color:var(--green);background:var(--greenD)}
-.alert-item.triggered-dn{border-color:var(--red);background:var(--redD)}
-.alert-item-icon{font-size:18px}
-.alert-item-text{flex:1}
-.alert-item-type{font-size:10px;letter-spacing:1.5px;text-transform:uppercase;color:var(--t4);margin-bottom:2px}
-.alert-item-val{color:var(--t1);font-weight:500}
-.alert-item-status{font-size:10px}
-.alert-item-status.active{color:var(--green)}
-.alert-item-status.triggered{color:var(--btc)}
-.alert-del-btn{
-  width:28px;height:28px;border:1px solid var(--b1);border-radius:6px;
-  background:none;color:var(--t4);cursor:pointer;font-size:14px;
-  display:flex;align-items:center;justify-content:center;transition:all .15s;
-}
-.alert-del-btn:hover{background:var(--redD);color:var(--red);border-color:var(--red)}
-.alert-note{
-  padding:12px 16px;background:rgba(247,147,26,.06);border:1px solid rgba(247,147,26,.15);
-  border-radius:var(--r8);font-family:var(--mono);font-size:11px;color:var(--t3);
-  margin-top:6px;
-}
-
-/* ════════ NEWS PAGE ════════ */
-.news-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
-.news-card{
-  background:var(--s1);border:1px solid var(--b1);border-radius:var(--r16);
-  padding:20px;transition:border-color .2s,transform .2s;
-  display:flex;flex-direction:column;gap:10px;
-}
-.news-card:hover{border-color:var(--b2);transform:translateY(-2px)}
-.news-source{
-  font-family:var(--mono);font-size:10px;letter-spacing:1.5px;text-transform:uppercase;
-  color:var(--btc);
-}
-.news-title{font-size:14px;font-weight:600;color:var(--t1);line-height:1.5}
-.news-desc{font-size:12px;color:var(--t3);line-height:1.6;flex:1}
-.news-date{font-family:var(--mono);font-size:10px;color:var(--t4)}
-.news-link{
-  display:inline-flex;align-items:center;gap:4px;
-  font-family:var(--mono);font-size:11px;color:var(--btc);
-  text-decoration:none;transition:color .15s;
-}
-.news-link:hover{color:var(--btc2)}
-.news-empty{
-  grid-column:span 3;text-align:center;padding:60px 0;
-  color:var(--t4);font-size:14px;
-}
-
-/* ════════ FOOTER ════════ */
-.footer{
-  position:fixed;bottom:0;left:0;right:0;z-index:99;
-  display:flex;align-items:center;gap:0;
-  padding:0 28px;height:34px;
-  background:rgba(3,6,10,.92);backdrop-filter:blur(16px);
-  border-top:1px solid var(--b1);
-  font-family:var(--mono);font-size:11px;color:var(--t4);
-}
-.ft-sep{margin:0 14px;color:var(--b2)}
-#ftPrice{color:var(--btc)}
-.ft-spacer{flex:1}
-.ft-refresh{color:var(--t4)}
-
-/* ════════ TOAST ════════ */
-.toast-container{position:fixed;bottom:48px;right:20px;z-index:999;display:flex;flex-direction:column;gap:8px;pointer-events:none}
-.toast{
-  padding:10px 18px;border-radius:var(--r8);
-  background:var(--s2);border:1px solid var(--b2);
-  font-family:var(--mono);font-size:12px;color:var(--t1);
-  box-shadow:var(--shadow);
-  animation:toastIn .3s ease;pointer-events:none;
-}
-.toast.success{border-color:rgba(16,217,138,.3);background:rgba(16,217,138,.1);color:var(--green)}
-.toast.warning{border-color:rgba(247,147,26,.3);background:var(--btcGS);color:var(--btc)}
-.toast.error{border-color:rgba(255,77,106,.3);background:var(--redD);color:var(--red)}
-@keyframes toastIn{from{opacity:0;transform:translateX(20px)}to{opacity:1;transform:translateX(0)}}
-
-/* ════════ LOADING ════════ */
-.skeleton{
-  background:linear-gradient(90deg,var(--s1) 25%,var(--s2) 50%,var(--s1) 75%);
-  background-size:400% 100%;
-  animation:skeletonShimmer 1.5s ease-in-out infinite;
-  border-radius:4px;
-}
-@keyframes skeletonShimmer{from{background-position:100% 0}to{background-position:-100% 0}}
-
-/* ════════ RESPONSIVE ════════ */
-@media(max-width:1100px){
-  .dash-grid{grid-template-columns:repeat(6,1fr)}
-  .col-3{grid-column:span 3}
-  .col-4{grid-column:span 3}
-  .col-6{grid-column:span 6}
-  .col-8{grid-column:span 6}
-  .col-12{grid-column:span 6}
-  .conv-layout{grid-template-columns:1fr}
-  .dca-layout{grid-template-columns:1fr}
-  .portfolio-layout{grid-template-columns:1fr}
-  .alerts-layout{grid-template-columns:1fr}
-}
-@media(max-width:768px){
-  .topbar{padding:0 16px}
-  .main{padding:16px 16px 60px}
-  .tb-nav{display:none}
-  .hero-band{grid-template-columns:1fr;text-align:center;padding:24px 20px}
-  .hero-right{text-align:center}
-  .hms-row{justify-content:center}
-  .hero-price{font-size:48px}
-  .dash-grid{grid-template-columns:1fr 1fr}
-  .col-3,.col-4,.col-6,.col-8,.col-12{grid-column:span 2}
-  .news-grid{grid-template-columns:1fr}
-  .news-empty{grid-column:span 1}
-  .curr-grid{grid-template-columns:1fr}
-  .dca-res-grid{grid-template-columns:1fr}
-  .halving-countdown{gap:8px}
-  .hc-unit{padding:8px 10px;min-width:48px}
-  .hc-num{font-size:20px}
-}
-@media(max-width:480px){
-  .hero-band::before{display:none}
-  .hero-price{font-size:38px}
-  .hero-curr{font-size:22px}
-  .dash-grid{grid-template-columns:1fr}
-  .col-3,.col-4,.col-6,.col-8,.col-12{grid-column:span 1}
-}
+  /* Mobile nav hide */
+  @media(max-width:768px) { .tb-desktop-nav { display:none; } }
 </style>
 </head>
-<body>
+<body class="bg-void text-slate-100">
 <canvas id="bgCanvas"></canvas>
+<div class="grid-overlay"></div>
+<div class="noise"></div>
+
 <div id="app">
 
-<!-- ── TOPBAR ── -->
-<header class="topbar">
-  <div class="tb-logo">
-    <div class="tb-logo-icon">₿</div>
-    <span class="tb-logo-text">BIT<span>PULSE</span></span>
+<!-- ══════════════════════════ TOPBAR ══════════════════════════ -->
+<header class="sticky top-0 z-50 flex items-center gap-4 px-6 h-14
+               bg-ink/80 backdrop-blur-xl border-b border-line/60">
+
+  <!-- Logo -->
+  <div class="flex items-center gap-2.5 flex-shrink-0">
+    <div class="w-8 h-8 rounded-lg bg-gradient-to-br from-btcD to-btc2
+                flex items-center justify-center text-black font-black text-base
+                shadow-[0_0_16px_rgba(247,147,26,.4)] animate-glow-orb">₿</div>
+    <span class="font-black text-lg tracking-widest text-white">BIT<span class="text-btc">PULSE</span></span>
   </div>
-  <nav class="tb-nav">
-    <button class="tb-link active" data-page="dashboard">Dashboard</button>
-    <button class="tb-link" data-page="converter">Converter</button>
-    <button class="tb-link" data-page="dca">DCA Calc</button>
-    <button class="tb-link" data-page="portfolio">Portfolio</button>
-    <button class="tb-link" data-page="alerts">Alerts</button>
-    <button class="tb-link" data-page="news">News</button>
+
+  <!-- Nav -->
+  <nav class="tb-desktop-nav flex gap-1 ml-8">
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all active"
+            data-page="dashboard">Dashboard</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="chart">Live Chart</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="converter">Converter</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="dca">DCA Calc</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="portfolio">Portfolio</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="alerts">Alerts</button>
+    <button class="nav-link relative px-3.5 py-1.5 text-xs font-semibold tracking-widest uppercase
+                   text-slate-400 hover:text-white hover:bg-surface rounded-md transition-all"
+            data-page="news">News</button>
   </nav>
-  <div class="tb-spacer"></div>
-  <div class="tb-pills">
-    <div class="live-chip"><span class="live-dot"></span>LIVE</div>
-    <div class="tb-time" id="tbTime">—</div>
+
+  <div class="flex-1"></div>
+
+  <!-- Right pills -->
+  <div class="flex items-center gap-3">
+    <div class="flex items-center gap-1.5 px-2.5 py-1 rounded-full
+                bg-acid/10 border border-acid/25 font-mono text-[10px] font-medium text-acid tracking-widest">
+      <span class="live-dot"></span>LIVE
+    </div>
+    <!-- Real-time clock -->
+    <div class="font-mono text-xs text-mute hidden sm:block" id="realClock">--:--:--</div>
+    <div class="font-mono text-[10px] text-slate-600" id="tbDate">--</div>
   </div>
 </header>
 
-<!-- ── MAIN ── -->
-<main class="main">
+<!-- ══════════════════════════ MAIN ══════════════════════════ -->
+<main class="flex-1 max-w-[1440px] mx-auto w-full px-5 py-6 pb-12">
 
-<!-- ══════════════ DASHBOARD ══════════════ -->
+<!-- ════════════════ DASHBOARD PAGE ════════════════ -->
 <section class="page active" id="page-dashboard">
 
   <!-- HERO BAND -->
-  <div class="hero-band">
-    <div class="hero-left">
-      <div class="hero-pair-label">BITCOIN / USD · BINANCE · COINBASE · KRAKEN</div>
-      <div class="hero-price-row">
-        <span class="hero-curr">$</span>
-        <span class="hero-price" id="heroPrice">——,———</span>
+  <div class="relative overflow-hidden rounded-2xl border border-line/70 bg-card
+              p-6 mb-5 card-accent-top">
+    <!-- Ghost BTC symbol -->
+    <div class="absolute -right-6 top-1/2 -translate-y-1/2 font-black text-[180px] leading-none
+                text-btc/[0.03] pointer-events-none select-none font-mono">₿</div>
+
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
+      <!-- Left: Price -->
+      <div>
+        <p class="font-mono text-[10px] tracking-[3px] text-slate-600 uppercase mb-2">
+          Bitcoin / USD · CoinGecko
+        </p>
+        <div class="flex items-baseline gap-1.5">
+          <span class="font-mono text-2xl text-btcD font-light">$</span>
+          <span id="heroPrice" class="font-black text-5xl md:text-6xl tracking-tight text-white transition-colors duration-500">
+            ——,———
+          </span>
+        </div>
+        <div class="flex flex-wrap items-center gap-2 mt-3">
+          <span id="badge24h" class="badge-flat">24h —</span>
+          <span id="badge7d"  class="badge-flat">7d —</span>
+          <span id="badge30d" class="badge-flat">30d —</span>
+        </div>
+        <p class="font-mono text-xs text-slate-500 mt-2" id="heroATH">ATH: loading…</p>
       </div>
-      <div class="hero-change-row">
-        <span class="badge flat" id="badge24h">24h —</span>
-        <span class="badge flat" id="badge7d">7d —</span>
-        <span class="badge flat" id="badge30d">30d —</span>
-        <span class="badge info" id="badgeMCap">MCap —</span>
+
+      <!-- Center: BTC icon + SATS -->
+      <div class="flex flex-col items-center gap-2">
+        <div class="w-20 h-20 rounded-full bg-gradient-to-br from-btcD to-btc2
+                    flex items-center justify-center text-5xl font-black text-black
+                    shadow-[0_0_60px_rgba(247,147,26,.4)] animate-glow-orb">₿</div>
+        <p class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">1 USD =</p>
+        <p class="font-mono text-xl font-bold text-btc" id="heroSatsUSD">— SATS</p>
+        <p class="font-mono text-[10px] text-slate-600" id="heroSatsBTC">1 BTC = — SATS</p>
       </div>
-    </div>
-    <div class="hero-center">
-      <div class="hero-btc-icon">₿</div>
-      <div class="hero-sats-label">1 USD =</div>
-      <div class="hero-sats-value" id="heroSatsPerUSD">— SATS</div>
-    </div>
-    <div class="hero-right">
-      <div class="hero-mini-stats">
-        <div class="hms-row"><span class="hms-label">ATH</span><span class="hms-value" id="hmsATH">—</span></div>
-        <div class="hms-row"><span class="hms-label">ATH %</span><span class="hms-value" id="hmsATHPct">—</span></div>
-        <div class="hms-row"><span class="hms-label">Volume 24h</span><span class="hms-value" id="hmsVol">—</span></div>
-        <div class="hms-row"><span class="hms-label">Dominance</span><span class="hms-value" id="hmsDom">—</span></div>
-        <div class="hms-row"><span class="hms-label">Rank</span><span class="hms-value">#1</span></div>
+
+      <!-- Right: mini stats -->
+      <div class="space-y-2.5">
+        <div class="flex justify-between items-baseline">
+          <span class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">Market Cap</span>
+          <span class="font-mono text-sm text-white" id="hmsMcap">—</span>
+        </div>
+        <div class="flex justify-between items-baseline">
+          <span class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">Volume 24h</span>
+          <span class="font-mono text-sm text-white" id="hmsVol">—</span>
+        </div>
+        <div class="flex justify-between items-baseline">
+          <span class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">Dominance</span>
+          <span class="font-mono text-sm text-btc" id="hmsDom">—</span>
+        </div>
+        <div class="flex justify-between items-baseline">
+          <span class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">Rank</span>
+          <span class="font-mono text-sm text-white">#1</span>
+        </div>
+        <div class="flex justify-between items-baseline">
+          <span class="font-mono text-[10px] text-slate-600 tracking-widest uppercase">All Time High</span>
+          <span class="font-mono text-sm text-white" id="hmsATH2">—</span>
+        </div>
       </div>
     </div>
   </div>
 
   <!-- TICKER STRIP -->
-  <div class="ticker-strip">
-    <div class="ticker-label">₿ MARKET</div>
-    <div class="ticker-scroll">
-      <div class="ticker-inner" id="tickerInner">
-        <span class="tick-item"><span class="tick-name">BTC</span><span class="tick-val" id="tBTC">…</span></span>
-        <span class="tick-item"><span class="tick-name">ETH</span><span class="tick-val" id="tETH">…</span></span>
-        <span class="tick-item"><span class="tick-name">BNB</span><span class="tick-val" id="tBNB">…</span></span>
-        <span class="tick-item"><span class="tick-name">SOL</span><span class="tick-val" id="tSOL">…</span></span>
-        <span class="tick-item"><span class="tick-name">XRP</span><span class="tick-val" id="tXRP">…</span></span>
-        <span class="tick-item"><span class="tick-name">ADA</span><span class="tick-val" id="tADA">…</span></span>
-        <span class="tick-item"><span class="tick-name">DOGE</span><span class="tick-val" id="tDOGE">…</span></span>
-        <span class="tick-item"><span class="tick-name">AVAX</span><span class="tick-val" id="tAVAX">…</span></span>
+  <div class="flex items-center h-10 bg-card border border-line/70 rounded-xl px-5 mb-5 overflow-hidden">
+    <span class="font-mono text-[10px] font-semibold tracking-[2px] text-btc uppercase
+                 pr-4 mr-4 border-r border-line flex-shrink-0">₿ MARKET</span>
+    <div class="ticker-scroll flex-1">
+      <div class="ticker-inner font-mono text-xs" id="tickerInner">
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">BTC</span>
+          <span id="tBTC">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">ETH</span>
+          <span id="tETH">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">BNB</span>
+          <span id="tBNB">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">SOL</span>
+          <span id="tSOL">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">XRP</span>
+          <span id="tXRP">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">ADA</span>
+          <span id="tADA">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">DOGE</span>
+          <span id="tDOGE">…</span>
+        </span>
+        <span class="flex items-center gap-2 text-slate-500">
+          <span class="text-slate-300">AVAX</span>
+          <span id="tAVAX">…</span>
+        </span>
+        <!-- Duplicate for seamless loop -->
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">BTC</span><span id="tBTC2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">ETH</span><span id="tETH2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">BNB</span><span id="tBNB2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">SOL</span><span id="tSOL2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">XRP</span><span id="tXRP2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">ADA</span><span id="tADA2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">DOGE</span><span id="tDOGE2">…</span></span>
+        <span class="flex items-center gap-2 text-slate-500"><span class="text-slate-300">AVAX</span><span id="tAVAX2">…</span></span>
       </div>
     </div>
   </div>
 
-  <!-- MAIN STATS GRID -->
-  <div class="dash-grid">
-
+  <!-- STATS GRID -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mb-5">
     <!-- Market Cap -->
-    <div class="card col-3 card-glow">
-      <div class="card-label">Market Cap</div>
-      <div class="card-value card-accent" id="statMcap">—</div>
-      <div class="card-sub">Rank #1 crypto asset</div>
+    <div class="relative bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors card-accent-top">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-2">Market Cap</p>
+      <p class="font-mono text-xl font-bold text-btc" id="statMcap">—</p>
+      <p class="font-mono text-[10px] text-slate-500 mt-1">Rank #1</p>
     </div>
-
-    <!-- 24h Volume -->
-    <div class="card col-3">
-      <div class="card-label">24h Volume</div>
-      <div class="card-value" id="statVol">—</div>
-      <div class="card-sub" id="statVolRatio">— % of mcap</div>
+    <!-- Volume -->
+    <div class="relative bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-2">24h Volume</p>
+      <p class="font-mono text-xl font-bold text-white" id="statVol">—</p>
+      <p class="font-mono text-[10px] text-slate-500 mt-1" id="statVolPct">— % of mcap</p>
     </div>
-
-    <!-- Circulating Supply -->
-    <div class="card col-3">
-      <div class="card-label">Circulating Supply</div>
-      <div class="card-value" id="statSupply">—</div>
-      <div class="supply-bar-track"><div class="supply-bar-fill" id="supplyFill" style="width:0%"></div></div>
-      <div class="card-sub" style="margin-top:6px"><span id="supplyPct">—</span> of 21M mined</div>
+    <!-- Supply -->
+    <div class="relative bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-2">Circulating Supply</p>
+      <p class="font-mono text-xl font-bold text-white" id="statSupply">—</p>
+      <div class="mt-2 h-1 bg-line rounded-full overflow-hidden">
+        <div id="supplyFill" class="h-full rounded-full bg-gradient-to-r from-btcD to-btc2 transition-all duration-1000" style="width:0%"></div>
+      </div>
+      <p class="font-mono text-[10px] text-slate-500 mt-1"><span id="supplyPct">—</span> of 21M BTC</p>
     </div>
-
     <!-- Block Height -->
-    <div class="card col-3">
-      <div class="card-label">Block Height</div>
-      <div class="card-value" id="statBlock">—</div>
-      <div class="card-sub" id="statBlockSub">~10 min per block</div>
+    <div class="relative bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-2">Block Height</p>
+      <p class="font-mono text-xl font-bold text-white" id="statBlock">—</p>
+      <p class="font-mono text-[10px] text-slate-500 mt-1">~10 min / block</p>
     </div>
+  </div>
+
+  <!-- MIDDLE ROW: Ranges + Halving + Fear/Greed -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-3 mb-5">
 
     <!-- Price Ranges -->
-    <div class="card col-6">
-      <div class="card-label">Price Ranges</div>
-      <div class="range-wrap">
-        <div class="range-row">
-          <span class="range-lbl">24H</span>
-          <span class="range-low" id="rLow24">—</span>
-          <div class="range-track" style="grid-column:unset;flex:1">
-            <div class="range-fill" id="rFill24" style="width:50%"></div>
-            <div class="range-pos" id="rPos24" style="left:50%"></div>
+    <div class="bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-4">Price Ranges</p>
+      <div class="space-y-4">
+        <!-- 24H -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="font-mono text-[9px] tracking-[2px] text-btc uppercase">24H</span>
+            <span class="font-mono text-[10px] text-slate-500">
+              <span id="rLow24">—</span> · <span id="rHigh24">—</span>
+            </span>
           </div>
-          <span class="range-high" id="rHigh24">—</span>
+          <div class="relative h-1.5 bg-line rounded-full">
+            <div id="rFill24" class="range-fill absolute left-0 top-0"></div>
+            <div id="rDot24"  class="range-dot"></div>
+          </div>
         </div>
-        <div class="range-row" style="margin-top:12px">
-          <span class="range-lbl">7D</span>
-          <span class="range-low" id="rLow7">—</span>
-          <div class="range-track" style="grid-column:unset;flex:1">
-            <div class="range-fill" id="rFill7" style="width:50%"></div>
-            <div class="range-pos" id="rPos7" style="left:50%"></div>
+        <!-- 7D -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="font-mono text-[9px] tracking-[2px] text-btc uppercase">7D</span>
+            <span class="font-mono text-[10px] text-slate-500">
+              <span id="rLow7">—</span> · <span id="rHigh7">—</span>
+            </span>
           </div>
-          <span class="range-high" id="rHigh7">—</span>
+          <div class="relative h-1.5 bg-line rounded-full">
+            <div id="rFill7" class="range-fill absolute left-0 top-0" style="background:linear-gradient(90deg,#1c2f44,#3b9eff)"></div>
+            <div id="rDot7"  class="range-dot" style="background:#3b9eff;box-shadow:0 0 10px #3b9eff"></div>
+          </div>
         </div>
-        <div class="range-row" style="margin-top:12px">
-          <span class="range-lbl">ATH</span>
-          <span class="range-low">$0</span>
-          <div class="range-track" style="grid-column:unset;flex:1">
-            <div class="range-fill" id="rFillATH" style="width:50%;background:linear-gradient(90deg,var(--b3),var(--btc))"></div>
-            <div class="range-pos" id="rPosATH" style="left:50%"></div>
+        <!-- ATH -->
+        <div>
+          <div class="flex justify-between items-center mb-1.5">
+            <span class="font-mono text-[9px] tracking-[2px] text-btc uppercase">ATH</span>
+            <span class="font-mono text-[10px] text-slate-500">$0 · <span id="rHighATH">—</span></span>
           </div>
-          <span class="range-high" id="rHighATH">—</span>
+          <div class="relative h-1.5 bg-line rounded-full">
+            <div id="rFillATH" class="range-fill absolute left-0 top-0" style="background:linear-gradient(90deg,#1c2f44,#9f7aea)"></div>
+            <div id="rDotATH"  class="range-dot" style="background:#9f7aea;box-shadow:0 0 10px #9f7aea"></div>
+          </div>
         </div>
       </div>
     </div>
 
     <!-- Halving Countdown -->
-    <div class="card col-6">
-      <div class="card-label">⛏ Next Halving Countdown</div>
-      <div class="halving-countdown">
-        <div class="hc-unit"><div class="hc-num" id="hvDays">—</div><div class="hc-lbl">Days</div></div>
-        <div class="hc-unit"><div class="hc-num" id="hvHrs">—</div><div class="hc-lbl">Hours</div></div>
-        <div class="hc-unit"><div class="hc-num" id="hvMin">—</div><div class="hc-lbl">Mins</div></div>
-        <div class="hc-unit"><div class="hc-num" id="hvSec">—</div><div class="hc-lbl">Secs</div></div>
+    <div class="bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-3">⛏ Next Halving</p>
+      <div class="flex gap-2 justify-center">
+        <div class="flex flex-col items-center bg-deep border border-line rounded-lg px-3 py-2 flex-1">
+          <span class="font-mono text-2xl font-bold text-btc hc-flip" id="hvDays">—</span>
+          <span class="font-mono text-[9px] text-slate-600 tracking-widest uppercase mt-1">Days</span>
+        </div>
+        <div class="flex flex-col items-center bg-deep border border-line rounded-lg px-3 py-2 flex-1">
+          <span class="font-mono text-2xl font-bold text-btc hc-flip" id="hvHrs">—</span>
+          <span class="font-mono text-[9px] text-slate-600 tracking-widest uppercase mt-1">Hrs</span>
+        </div>
+        <div class="flex flex-col items-center bg-deep border border-line rounded-lg px-3 py-2 flex-1">
+          <span class="font-mono text-2xl font-bold text-btc hc-flip" id="hvMin">—</span>
+          <span class="font-mono text-[9px] text-slate-600 tracking-widest uppercase mt-1">Min</span>
+        </div>
+        <div class="flex flex-col items-center bg-deep border border-line rounded-lg px-3 py-2 flex-1">
+          <span class="font-mono text-2xl font-bold text-btc hc-flip" id="hvSec">—</span>
+          <span class="font-mono text-[9px] text-slate-600 tracking-widest uppercase mt-1">Sec</span>
+        </div>
       </div>
-      <div class="card-sub" style="margin-top:12px;text-align:center">
-        <span id="hvBlocks">— blocks</span> remaining · Est. <span id="hvDate" class="card-accent">—</span>
-      </div>
+      <p class="font-mono text-[10px] text-center text-slate-500 mt-3">
+        <span id="hvBlocks" class="text-btc">—</span> blocks left · Est. <span id="hvDate">—</span>
+      </p>
     </div>
 
     <!-- Fear & Greed -->
-    <div class="card col-3">
-      <div class="card-label">Fear &amp; Greed Index</div>
-      <div class="fg-wrap">
-        <svg class="fg-gauge-svg" viewBox="0 0 160 90">
+    <div class="bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-2">Fear &amp; Greed Index</p>
+      <div class="flex flex-col items-center">
+        <svg viewBox="0 0 160 92" class="w-40 h-24">
           <defs>
-            <linearGradient id="fgGrad" x1="0" y1="0" x2="1" y2="0">
-              <stop offset="0%" stop-color="#ff4d6a"/>
-              <stop offset="25%" stop-color="#ff944d"/>
-              <stop offset="50%" stop-color="#ffd14d"/>
-              <stop offset="75%" stop-color="#a3e635"/>
+            <linearGradient id="fgG" x1="0" y1="0" x2="1" y2="0">
+              <stop offset="0%"   stop-color="#ff4d6a"/>
+              <stop offset="30%"  stop-color="#ffa733"/>
+              <stop offset="50%"  stop-color="#ffd14d"/>
+              <stop offset="75%"  stop-color="#a3e635"/>
               <stop offset="100%" stop-color="#10d98a"/>
             </linearGradient>
           </defs>
-          <path d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="rgba(255,255,255,.06)" stroke-width="10" stroke-linecap="round"/>
-          <path id="fgArc" d="M 20 80 A 60 60 0 0 1 140 80" fill="none" stroke="url(#fgGrad)" stroke-width="10" stroke-linecap="round"
-                stroke-dasharray="188.4" stroke-dashoffset="188.4" style="transition:stroke-dashoffset 1.5s ease"/>
-          <line id="fgNeedle" x1="80" y1="80" x2="80" y2="30" stroke="white" stroke-width="2" stroke-linecap="round"
-                style="transform-origin:80px 80px;transform:rotate(0deg);transition:transform 1.5s ease"/>
-          <circle cx="80" cy="80" r="5" fill="white" opacity=".8"/>
-          <text x="80" y="72" text-anchor="middle" fill="rgba(255,255,255,.3)" font-size="9" font-family="JetBrains Mono">FEAR</text>
+          <!-- Track -->
+          <path d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="rgba(255,255,255,.05)" stroke-width="10" stroke-linecap="round"/>
+          <!-- Colored arc -->
+          <path id="fgArc" d="M20 80 A60 60 0 0 1 140 80" fill="none" stroke="url(#fgG)" stroke-width="10" stroke-linecap="round"
+                stroke-dasharray="188.4" stroke-dashoffset="188.4"/>
+          <!-- Needle -->
+          <line id="fgNeedle" x1="80" y1="80" x2="80" y2="28" stroke="white" stroke-width="2.5" stroke-linecap="round"/>
+          <circle cx="80" cy="80" r="5" fill="white" opacity=".9"/>
+          <!-- Labels -->
+          <text x="16" y="90" fill="rgba(255,255,255,.25)" font-size="8" font-family="JetBrains Mono">FEAR</text>
+          <text x="120" y="90" fill="rgba(255,255,255,.25)" font-size="8" font-family="JetBrains Mono">GREED</text>
         </svg>
-        <div class="fg-value-big" id="fgValue">—</div>
-        <div class="fg-label-big" id="fgLabel" style="color:var(--t3)">Loading…</div>
+        <p class="font-mono text-4xl font-bold mt-1" id="fgValue" style="color:#ffd14d">—</p>
+        <p class="font-mono text-xs tracking-widest uppercase mt-1" id="fgLabel" style="color:#ffd14d">Loading…</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- CURRENCIES + ON-CHAIN -->
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-3 mb-5">
+    <!-- World Currencies -->
+    <div class="bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-3">1 BTC in World Currencies</p>
+      <div class="grid grid-cols-2 gap-2" id="currGrid">
+        <div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+        <div class="skeleton h-10"></div><div class="skeleton h-10"></div>
+        <div class="skeleton h-10"></div><div class="skeleton h-10"></div>
       </div>
     </div>
 
-    <!-- Dominance -->
-    <div class="card col-3">
-      <div class="card-label">BTC Dominance</div>
-      <div class="card-value card-accent" id="statDom">—</div>
-      <div class="card-sub">Of total crypto market cap</div>
-      <canvas class="sparkline-canvas" id="domSparkline" height="60"></canvas>
-    </div>
-
-    <!-- Currencies Grid -->
-    <div class="card col-6">
-      <div class="card-label">1 BTC in World Currencies</div>
-      <div class="curr-grid" id="currGrid">
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
-        <div class="skeleton" style="height:40px;border-radius:8px"></div>
+    <!-- On-Chain Metrics -->
+    <div class="bg-card border border-line/70 rounded-xl p-4 hover:border-mute transition-colors">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase mb-3">On-Chain Metrics</p>
+      <div class="grid grid-cols-2 gap-2">
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Hash Rate (est.)</p>
+          <p class="font-mono text-base font-bold text-white" id="ocHash">—</p>
+          <p class="font-mono text-[10px] text-slate-500">EH/s</p>
+        </div>
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Mempool TX</p>
+          <p class="font-mono text-base font-bold text-white" id="ocMempool">—</p>
+          <p class="font-mono text-[10px] text-slate-500">unconfirmed</p>
+        </div>
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Avg Fee</p>
+          <p class="font-mono text-base font-bold text-white" id="ocFee">—</p>
+          <p class="font-mono text-[10px] text-slate-500">sat/vByte</p>
+        </div>
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Block Reward</p>
+          <p class="font-mono text-base font-bold text-btc" id="ocReward">3.125 BTC</p>
+          <p class="font-mono text-[10px] text-slate-500">per block</p>
+        </div>
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Max Supply</p>
+          <p class="font-mono text-base font-bold text-white">21,000,000</p>
+          <p class="font-mono text-[10px] text-slate-500">BTC hard cap</p>
+        </div>
+        <div class="bg-deep border border-line rounded-lg p-3">
+          <p class="font-mono text-[9px] tracking-[1.5px] text-slate-600 uppercase mb-1.5">Daily Revenue</p>
+          <p class="font-mono text-base font-bold text-white" id="ocRevenue">—</p>
+          <p class="font-mono text-[10px] text-slate-500">USD/day miners</p>
+        </div>
       </div>
     </div>
+  </div>
 
-    <!-- On-chain Metrics -->
-    <div class="card col-6">
-      <div class="card-label">On-Chain Metrics</div>
-      <div class="onchain-grid">
-        <div class="oc-item"><div class="oc-lbl">Hash Rate (est.)</div><div class="oc-val" id="ocHash">—</div><div class="oc-sub">EH/s (7d avg)</div></div>
-        <div class="oc-item"><div class="oc-lbl">Mining Revenue</div><div class="oc-val" id="ocMining">—</div><div class="oc-sub">USD/day (est.)</div></div>
-        <div class="oc-item"><div class="oc-lbl">Unconfirmed TX</div><div class="oc-val" id="ocMempool">—</div><div class="oc-sub">in mempool</div></div>
-        <div class="oc-item"><div class="oc-lbl">Avg Fee (sat/vB)</div><div class="oc-val" id="ocFee">—</div><div class="oc-sub">recommended</div></div>
-        <div class="oc-item"><div class="oc-lbl">Max Supply</div><div class="oc-val">21,000,000</div><div class="oc-sub">BTC (hard cap)</div></div>
-        <div class="oc-item"><div class="oc-lbl">Current Reward</div><div class="oc-val" id="ocReward">3.125 BTC</div><div class="oc-sub">per block</div></div>
+  <!-- PREVIEW: price sparkline canvas -->
+  <div class="bg-card border border-line/70 rounded-xl p-4 mb-5 hover:border-mute transition-colors">
+    <div class="flex items-center justify-between mb-3">
+      <p class="font-mono text-[10px] tracking-widest text-slate-600 uppercase">7-Day Trend Preview</p>
+      <span class="font-mono text-[10px] text-slate-600">→ Full chart in "Live Chart" tab</span>
+    </div>
+    <canvas id="sparkCanvas" class="w-full rounded" height="80"></canvas>
+  </div>
+
+</section>
+
+<!-- ════════════════ CHART PAGE ════════════════ -->
+<section class="page" id="page-chart">
+  <div class="mb-4 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">Live Chart</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <span class="font-mono text-[10px] text-btc bg-btc/10 border border-btc/20 px-2 py-1 rounded-full tracking-widest">TRADINGVIEW</span>
+  </div>
+
+  <!-- Symbol selector -->
+  <div class="flex flex-wrap gap-2 mb-4">
+    <button class="chart-sym-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-btc/10 border border-btc/30 text-btc transition-all active-sym"
+            data-sym="BINANCE:BTCUSDT">BTC/USDT</button>
+    <button class="chart-sym-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-sym="BINANCE:ETHUSDT">ETH/USDT</button>
+    <button class="chart-sym-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-sym="BINANCE:BNBUSDT">BNB/USDT</button>
+    <button class="chart-sym-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-sym="BINANCE:SOLUSDT">SOL/USDT</button>
+    <button class="chart-sym-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-sym="BINANCE:XRPUSDT">XRP/USDT</button>
+    <div class="flex-1"></div>
+    <!-- Interval buttons -->
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="1">1m</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="5">5m</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="15">15m</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-btc/10 border border-btc/30 text-btc transition-all active-int"
+            data-int="60">1h</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="240">4h</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="D">1D</button>
+    <button class="chart-int-btn font-mono text-xs px-3 py-1.5 rounded-lg bg-card border border-line text-slate-400 hover:border-mute transition-all"
+            data-int="W">1W</button>
+  </div>
+
+  <!-- TradingView widget container -->
+  <div class="bg-card border border-line/70 rounded-2xl overflow-hidden" style="height:580px">
+    <div id="tvContainer" class="w-full h-full"></div>
+  </div>
+
+  <!-- Chart info cards below -->
+  <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-4">
+    <div class="bg-card border border-line/70 rounded-xl p-4">
+      <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Indicators</p>
+      <ul class="font-mono text-xs text-slate-400 space-y-1.5">
+        <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-btc inline-block"></span>EMA 20/50/200</li>
+        <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-sky inline-block"></span>RSI (14)</li>
+        <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-acid inline-block"></span>MACD</li>
+        <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-lilac inline-block"></span>Bollinger Bands</li>
+        <li class="flex items-center gap-2"><span class="w-2 h-2 rounded-full bg-amber inline-block"></span>Volume</li>
+      </ul>
+    </div>
+    <div class="bg-card border border-line/70 rounded-xl p-4">
+      <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Chart Tools</p>
+      <ul class="font-mono text-xs text-slate-400 space-y-1.5">
+        <li>→ Trend lines</li>
+        <li>→ Fibonacci retracement</li>
+        <li>→ Support &amp; Resistance</li>
+        <li>→ Drawing tools</li>
+        <li>→ Price alerts on chart</li>
+      </ul>
+    </div>
+    <div class="bg-card border border-line/70 rounded-xl p-4">
+      <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Key Levels (est.)</p>
+      <div class="space-y-1.5">
+        <div class="flex justify-between font-mono text-xs">
+          <span class="text-slate-500">Resistance</span>
+          <span class="text-ruby" id="chartR1">—</span>
+        </div>
+        <div class="flex justify-between font-mono text-xs">
+          <span class="text-slate-500">Current</span>
+          <span class="text-white" id="chartCur">—</span>
+        </div>
+        <div class="flex justify-between font-mono text-xs">
+          <span class="text-slate-500">Support</span>
+          <span class="text-acid" id="chartS1">—</span>
+        </div>
+        <div class="flex justify-between font-mono text-xs">
+          <span class="text-slate-500">Strong Support</span>
+          <span class="text-acid" id="chartS2">—</span>
+        </div>
       </div>
     </div>
-
-    <!-- Price sparkline -->
-    <div class="card col-12">
-      <div class="card-label" style="justify-content:space-between">
-        <span>7-Day Simulated Price Activity</span>
-        <span style="color:var(--t4);font-size:10px">Illustrative • updates on refresh</span>
+    <div class="bg-card border border-line/70 rounded-xl p-4">
+      <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Volume Analysis</p>
+      <div class="space-y-2 font-mono text-xs text-slate-400">
+        <div class="flex justify-between"><span>24h Vol</span><span class="text-white" id="chartVol">—</span></div>
+        <div class="flex justify-between"><span>Dominance</span><span class="text-btc" id="chartDom">—</span></div>
+        <div class="flex justify-between"><span>Liquidity</span><span class="text-acid">High</span></div>
+        <div class="flex justify-between"><span>Volatility</span><span class="text-amber">Medium</span></div>
       </div>
-      <canvas id="priceChart" style="width:100%;height:120px;margin-top:10px" height="120"></canvas>
     </div>
-
   </div>
 </section>
 
-<!-- ══════════════ CONVERTER ══════════════ -->
+<!-- ════════════════ CONVERTER PAGE ════════════════ -->
 <section class="page" id="page-converter">
-  <div style="margin-bottom:24px">
-    <div class="sect-hdr"><div class="sect-title">Bitcoin Converter</div><div class="sect-line"></div><div class="sect-pill">REAL-TIME</div></div>
+  <div class="mb-5 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">Converter</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <span class="font-mono text-[10px] text-acid bg-acid/10 border border-acid/20 px-2 py-1 rounded-full tracking-widest">REAL-TIME</span>
   </div>
-  <div class="conv-layout">
-    <div class="conv-card">
-      <div class="conv-title">Convert Any Amount</div>
-      <div class="conv-desc">Type in any field — all others update instantly.</div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Converter form -->
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-1">Convert Any Amount</h3>
+      <p class="text-sm text-slate-500 mb-6">Type in any field — all update instantly.</p>
 
-      <div class="conv-field">
-        <div class="conv-lbl"><span>Bitcoin</span><span class="conv-lbl-curr">BTC</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon">₿</div><input class="conv-inp" id="cBTC" type="number" placeholder="0.00000000" step="any" min="0"/></div>
-      </div>
-      <div class="conv-sep"><div class="conv-sep-line"></div><div class="conv-sep-icon">⇅</div><div class="conv-sep-line"></div></div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>Satoshis</span><span class="conv-lbl-curr">SATS</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon" style="font-size:13px">SAT</div><input class="conv-inp" id="cSATS" type="number" placeholder="0" step="1" min="0"/></div>
-      </div>
-      <div class="conv-sep"><div class="conv-sep-line"></div><div class="conv-sep-icon">⇄</div><div class="conv-sep-line"></div></div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>US Dollar</span><span class="conv-lbl-curr">USD</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon">$</div><input class="conv-inp" id="cUSD" type="number" placeholder="0.00" step="any" min="0"/></div>
-      </div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>Euro</span><span class="conv-lbl-curr">EUR</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon">€</div><input class="conv-inp" id="cEUR" type="number" placeholder="0.00" step="any" min="0"/></div>
-      </div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>British Pound</span><span class="conv-lbl-curr">GBP</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon">£</div><input class="conv-inp" id="cGBP" type="number" placeholder="0.00" step="any" min="0"/></div>
-      </div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>Japanese Yen</span><span class="conv-lbl-curr">JPY</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon">¥</div><input class="conv-inp" id="cJPY" type="number" placeholder="0" step="1" min="0"/></div>
-      </div>
-      <div class="conv-field">
-        <div class="conv-lbl"><span>Brazilian Real</span><span class="conv-lbl-curr">BRL</span></div>
-        <div class="conv-inp-wrap"><div class="conv-inp-icon" style="font-size:13px">R$</div><input class="conv-inp" id="cBRL" type="number" placeholder="0.00" step="any" min="0"/></div>
-      </div>
-
-      <div class="quick-presets">
-        <button class="qp-btn" data-val="0.001">0.001 BTC</button>
-        <button class="qp-btn" data-val="0.01">0.01 BTC</button>
-        <button class="qp-btn" data-val="0.1">0.1 BTC</button>
-        <button class="qp-btn" data-val="1">1 BTC</button>
-        <button class="qp-btn" data-val="10">10 BTC</button>
-        <button class="qp-btn" data-val="100">100 BTC</button>
-      </div>
-      <div class="conv-rate-bar">
-        <span class="conv-rate-lbl">Current rate</span>
-        <span class="conv-rate-val" id="convRateDisplay">1 BTC = $—</span>
-      </div>
-    </div>
-
-    <div class="conv-table-card">
-      <div style="font-size:17px;font-weight:700;margin-bottom:18px">Reference Table</div>
-      <table class="conv-table">
-        <thead>
-          <tr>
-            <th></th><th>Currency</th><th>1 BTC</th><th>1,000 USD</th><th>1M SAT</th>
-          </tr>
-        </thead>
-        <tbody id="convTableBody">
-          <tr><td colspan="5" style="text-align:center;color:var(--t4);padding:24px;font-family:var(--mono);font-size:12px">Loading rates…</td></tr>
-        </tbody>
-      </table>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ DCA ══════════════ -->
-<section class="page" id="page-dca">
-  <div style="margin-bottom:24px">
-    <div class="sect-hdr"><div class="sect-title">DCA Calculator</div><div class="sect-line"></div><div class="sect-pill">STRATEGY SIMULATOR</div></div>
-  </div>
-  <div class="dca-layout">
-    <div class="dca-card">
-      <div class="dca-title">DCA Strategy</div>
-      <div class="dca-desc">Simulate a recurring Bitcoin investment strategy over time.</div>
-
-      <div class="dca-field">
-        <label class="dca-lbl">Amount per period (USD)</label>
-        <input class="dca-inp" id="dcaAmt" type="number" value="100" min="1"/>
-      </div>
-      <div class="dca-field">
-        <label class="dca-lbl">Frequency</label>
-        <div class="toggle-group">
-          <div class="tgl" data-f="daily">Daily</div>
-          <div class="tgl" data-f="weekly">Weekly</div>
-          <div class="tgl on" data-f="monthly">Monthly</div>
-        </div>
-      </div>
-      <div class="dca-field">
-        <label class="dca-lbl">Duration (months)</label>
-        <input class="dca-inp" id="dcaMos" type="number" value="24" min="1" max="240"/>
-      </div>
-      <div class="dca-field">
-        <label class="dca-lbl">Start BTC price (USD) — leave blank for current</label>
-        <input class="dca-inp" id="dcaStart" type="number" placeholder="Current price"/>
-      </div>
-      <div class="dca-field">
-        <label class="dca-lbl">Target/Exit BTC price (USD) — optional</label>
-        <input class="dca-inp" id="dcaExit" type="number" placeholder="e.g. 200000"/>
-      </div>
-      <button class="dca-run-btn" id="dcaRunBtn">CALCULATE STRATEGY</button>
-    </div>
-
-    <div class="dca-results" id="dcaResults">
-      <div class="dca-placeholder">
-        <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
-        <span>Configure your strategy and click Calculate</span>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ PORTFOLIO ══════════════ -->
-<section class="page" id="page-portfolio">
-  <div style="margin-bottom:24px">
-    <div class="sect-hdr"><div class="sect-title">Portfolio Tracker</div><div class="sect-line"></div><div class="sect-pill">LOCAL ONLY</div></div>
-  </div>
-  <div class="portfolio-layout">
-    <div class="port-card">
-      <div class="port-title">Add Transaction</div>
-      <div class="port-form">
-        <div class="port-row" style="grid-template-columns:1fr 1fr">
-          <div>
-            <label class="dca-lbl">BTC Amount</label>
-            <input class="port-inp" id="portBTC" type="number" placeholder="0.01" step="any" min="0"/>
-          </div>
-          <div>
-            <label class="dca-lbl">Buy Price (USD)</label>
-            <input class="port-inp" id="portCost" type="number" placeholder="50000" min="0"/>
-          </div>
-        </div>
-        <button class="port-add-btn" id="portAddBtn">+ Add Entry</button>
-      </div>
-      <div class="port-entries" id="portEntries">
-        <div class="port-empty">No entries yet. Add your first BTC transaction above.</div>
-      </div>
-      <div class="port-summary" id="portSummary" style="display:none">
-        <div class="port-sum-item"><div class="port-sum-lbl">Total BTC</div><div class="port-sum-val" id="sumBTC">—</div></div>
-        <div class="port-sum-item"><div class="port-sum-lbl">Total Invested</div><div class="port-sum-val" id="sumInvested">—</div></div>
-        <div class="port-sum-item"><div class="port-sum-lbl">Current Value</div><div class="port-sum-val" id="sumValue">—</div></div>
-        <div class="port-sum-item"><div class="port-sum-lbl">Total P&L</div><div class="port-sum-val" id="sumPnl">—</div></div>
-        <div class="port-sum-item"><div class="port-sum-lbl">Avg Buy Price</div><div class="port-sum-val" id="sumAvg">—</div></div>
-        <div class="port-sum-item"><div class="port-sum-lbl">ROI</div><div class="port-sum-val" id="sumROI">—</div></div>
-      </div>
-    </div>
-    <div class="port-card">
-      <div class="port-title">Holdings Overview</div>
-      <canvas id="portChart" style="width:100%;height:240px" height="240"></canvas>
-      <div style="margin-top:20px">
-        <div class="card-label">Break-even Price</div>
-        <div style="font-family:var(--mono);font-size:28px;font-weight:700;color:var(--btc)" id="portBreakeven">—</div>
-        <div class="card-sub">You are profitable above this price</div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<!-- ══════════════ ALERTS ══════════════ -->
-<section class="page" id="page-alerts">
-  <div style="margin-bottom:24px">
-    <div class="sect-hdr"><div class="sect-title">Price Alerts</div><div class="sect-line"></div><div class="sect-pill">IN-BROWSER</div></div>
-  </div>
-  <div class="alerts-layout">
-    <div class="alert-card">
-      <div class="alert-title">Set Alert</div>
-      <div class="alert-desc">Get notified when Bitcoin crosses your target price. Runs while the tab is open.</div>
-      <div class="alert-form">
+      <!-- Fields -->
+      <div id="convFields" class="space-y-3">
+        <!-- BTC -->
         <div>
-          <label class="dca-lbl">Alert Type</label>
-          <select class="alert-type-sel" id="alertType" style="width:100%">
-            <option value="above">Price goes ABOVE</option>
-            <option value="below">Price goes BELOW</option>
-            <option value="change">% Change exceeds</option>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">Bitcoin</label>
+            <span class="font-mono text-[10px] text-btc">BTC</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-lg">₿</span>
+            <input id="cBTC" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0.00000000" step="any" min="0"/>
+          </div>
+        </div>
+        <!-- SATS -->
+        <div>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">Satoshis</label>
+            <span class="font-mono text-[10px] text-btc">SATS</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-xs">SAT</span>
+            <input id="cSATS" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0" step="1" min="0"/>
+          </div>
+        </div>
+        <div class="border-t border-line my-1"></div>
+        <!-- USD -->
+        <div>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">US Dollar</label>
+            <span class="font-mono text-[10px] text-btc">USD</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-lg">$</span>
+            <input id="cUSD" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0.00" step="any" min="0"/>
+          </div>
+        </div>
+        <!-- EUR -->
+        <div>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">Euro</label>
+            <span class="font-mono text-[10px] text-btc">EUR</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-lg">€</span>
+            <input id="cEUR" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0.00" step="any" min="0"/>
+          </div>
+        </div>
+        <!-- GBP -->
+        <div>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">British Pound</label>
+            <span class="font-mono text-[10px] text-btc">GBP</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-lg">£</span>
+            <input id="cGBP" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0.00" step="any" min="0"/>
+          </div>
+        </div>
+        <!-- JPY -->
+        <div>
+          <div class="flex justify-between mb-1.5">
+            <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase">Japanese Yen</label>
+            <span class="font-mono text-[10px] text-btc">JPY</span>
+          </div>
+          <div class="flex items-center bg-deep border border-line rounded-lg overflow-hidden focus-within:border-btc transition-colors">
+            <span class="font-mono px-4 py-3 text-slate-500 border-r border-line text-lg">¥</span>
+            <input id="cJPY" type="number" class="flex-1 bg-transparent px-4 py-3 font-mono text-lg text-white outline-none" placeholder="0" step="1" min="0"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick presets -->
+      <div class="flex flex-wrap gap-2 mt-5">
+        <span class="font-mono text-[10px] text-slate-600 self-center mr-1">QUICK:</span>
+        <button class="qp font-mono text-xs px-3 py-1.5 bg-deep border border-line rounded-lg text-slate-400 hover:border-btc hover:text-btc transition-all" data-v="0.001">0.001</button>
+        <button class="qp font-mono text-xs px-3 py-1.5 bg-deep border border-line rounded-lg text-slate-400 hover:border-btc hover:text-btc transition-all" data-v="0.01">0.01</button>
+        <button class="qp font-mono text-xs px-3 py-1.5 bg-deep border border-line rounded-lg text-slate-400 hover:border-btc hover:text-btc transition-all" data-v="0.1">0.1</button>
+        <button class="qp font-mono text-xs px-3 py-1.5 bg-deep border border-line rounded-lg text-slate-400 hover:border-btc hover:text-btc transition-all" data-v="1">1 BTC</button>
+        <button class="qp font-mono text-xs px-3 py-1.5 bg-deep border border-line rounded-lg text-slate-400 hover:border-btc hover:text-btc transition-all" data-v="10">10 BTC</button>
+      </div>
+      <div class="flex justify-between items-center mt-4 px-4 py-3 bg-deep border border-line rounded-lg">
+        <span class="font-mono text-[10px] text-slate-600">Current rate</span>
+        <span class="font-mono text-sm text-btc font-semibold" id="convRate">1 BTC = $—</span>
+      </div>
+    </div>
+
+    <!-- Reference table -->
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-4">Reference Table</h3>
+      <div class="overflow-x-auto">
+        <table class="w-full">
+          <thead>
+            <tr class="border-b border-line">
+              <th class="font-mono text-[9px] tracking-widest text-slate-600 uppercase text-left pb-3 pr-4"></th>
+              <th class="font-mono text-[9px] tracking-widest text-slate-600 uppercase text-left pb-3 pr-4">Currency</th>
+              <th class="font-mono text-[9px] tracking-widest text-slate-600 uppercase text-right pb-3 pr-4">1 BTC</th>
+              <th class="font-mono text-[9px] tracking-widest text-slate-600 uppercase text-right pb-3 pr-4">$1,000</th>
+              <th class="font-mono text-[9px] tracking-widest text-slate-600 uppercase text-right pb-3">1M SATS</th>
+            </tr>
+          </thead>
+          <tbody id="convTableBody" class="divide-y divide-line/40">
+            <tr><td colspan="5" class="py-8 text-center font-mono text-xs text-slate-600">Loading…</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ DCA PAGE ════════════════ -->
+<section class="page" id="page-dca">
+  <div class="mb-5 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">DCA Calculator</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <span class="font-mono text-[10px] text-sky bg-sky/10 border border-sky/20 px-2 py-1 rounded-full tracking-widest">STRATEGY</span>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <!-- Form -->
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-1">Configure Strategy</h3>
+      <p class="text-sm text-slate-500 mb-6">Dollar Cost Averaging — recurring purchases over time.</p>
+      <div class="space-y-5">
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Amount per period (USD)</label>
+          <input id="dcaAmt" type="number" value="100" min="1"
+                 class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-lg text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Frequency</label>
+          <div class="flex gap-2">
+            <button class="dca-tgl flex-1 py-2.5 rounded-lg font-mono text-sm border border-line bg-deep text-slate-400 hover:border-mute transition-all" data-f="daily">Daily</button>
+            <button class="dca-tgl flex-1 py-2.5 rounded-lg font-mono text-sm border border-line bg-deep text-slate-400 hover:border-mute transition-all" data-f="weekly">Weekly</button>
+            <button class="dca-tgl flex-1 py-2.5 rounded-lg font-mono text-sm border border-btc/40 bg-btc/10 text-btc" data-f="monthly">Monthly</button>
+          </div>
+        </div>
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Duration (months)</label>
+          <input id="dcaMos" type="number" value="24" min="1" max="240"
+                 class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-lg text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Start BTC price (blank = current)</label>
+          <input id="dcaStart" type="number" placeholder="Current price"
+                 class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-lg text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Exit target price (optional)</label>
+          <input id="dcaExit" type="number" placeholder="e.g. 200000"
+                 class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-lg text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+        <button id="dcaRunBtn"
+                class="w-full py-4 rounded-xl bg-gradient-to-r from-btcD to-btc2 text-black font-black text-base tracking-widest uppercase
+                       hover:from-btc hover:to-btc3 hover:-translate-y-0.5 hover:shadow-[0_8px_24px_rgba(247,147,26,.3)]
+                       active:translate-y-0 transition-all">
+          CALCULATE STRATEGY
+        </button>
+      </div>
+    </div>
+    <!-- Results -->
+    <div class="bg-card border border-line/70 rounded-2xl p-6 flex flex-col">
+      <h3 class="font-bold text-lg mb-4">Results</h3>
+      <div id="dcaResults" class="flex-1 flex items-center justify-center">
+        <div class="text-center text-slate-600 font-mono text-sm">
+          <svg class="mx-auto mb-3 opacity-30" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.5" viewBox="0 0 24 24"><path d="M3 3v18h18"/><path d="m19 9-5 5-4-4-3 3"/></svg>
+          Configure your strategy and click Calculate
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ PORTFOLIO PAGE ════════════════ -->
+<section class="page" id="page-portfolio">
+  <div class="mb-5 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">Portfolio</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <span class="font-mono text-[10px] text-amber bg-amber/10 border border-amber/20 px-2 py-1 rounded-full tracking-widest">LOCAL ONLY</span>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-5">Add Transaction</h3>
+      <div class="grid grid-cols-2 gap-3 mb-3">
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">BTC Amount</label>
+          <input id="portBTC" type="number" placeholder="0.01" step="any" min="0"
+                 class="w-full bg-deep border border-line rounded-lg px-3 py-2.5 font-mono text-sm text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Buy Price (USD)</label>
+          <input id="portCost" type="number" placeholder="50000" min="0"
+                 class="w-full bg-deep border border-line rounded-lg px-3 py-2.5 font-mono text-sm text-white outline-none focus:border-btc transition-colors"/>
+        </div>
+      </div>
+      <button id="portAddBtn"
+              class="w-full py-3 rounded-xl bg-btc text-black font-black text-sm tracking-widest uppercase
+                     hover:bg-btc2 hover:-translate-y-0.5 transition-all">
+        + ADD ENTRY
+      </button>
+      <div id="portEntries" class="mt-4 space-y-2 max-h-72 overflow-y-auto">
+        <p class="text-center font-mono text-xs text-slate-600 py-6">No entries yet.</p>
+      </div>
+      <div id="portSummary" class="hidden mt-4 pt-4 border-t border-line grid grid-cols-2 gap-2.5">
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">Total BTC</p><p class="font-mono font-bold text-btc" id="sumBTC">—</p></div>
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">Invested</p><p class="font-mono font-bold text-white" id="sumInvested">—</p></div>
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">Current Value</p><p class="font-mono font-bold text-white" id="sumValue">—</p></div>
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">P&L</p><p class="font-mono font-bold" id="sumPnl">—</p></div>
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">Avg Buy</p><p class="font-mono font-bold text-white" id="sumAvg">—</p></div>
+        <div class="bg-deep border border-line rounded-lg p-3"><p class="font-mono text-[9px] text-slate-600 uppercase tracking-widest mb-1">ROI</p><p class="font-mono font-bold" id="sumROI">—</p></div>
+      </div>
+    </div>
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-4">Break-even Analysis</h3>
+      <canvas id="portCanvas" class="w-full rounded-xl" height="200"></canvas>
+      <div class="mt-5 p-4 bg-deep border border-line rounded-xl">
+        <p class="font-mono text-[9px] text-slate-600 tracking-widest uppercase mb-1">Break-even Price</p>
+        <p class="font-mono text-3xl font-black text-btc" id="portBreakeven">—</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">You are profitable above this price</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════ ALERTS PAGE ════════════════ -->
+<section class="page" id="page-alerts">
+  <div class="mb-5 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">Price Alerts</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <span class="font-mono text-[10px] text-ruby bg-ruby/10 border border-ruby/20 px-2 py-1 rounded-full tracking-widest">IN-BROWSER</span>
+  </div>
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-5">
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-1">Set Alert</h3>
+      <p class="text-sm text-slate-500 mb-5">Get notified when Bitcoin crosses your target.</p>
+      <div class="space-y-4">
+        <div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2">Alert Type</label>
+          <select id="alertType" class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-sm text-white outline-none focus:border-btc transition-colors cursor-pointer">
+            <option value="above">Price goes ABOVE →</option>
+            <option value="below">Price drops BELOW ↓</option>
+            <option value="pct">% Change exceeds ±</option>
           </select>
         </div>
         <div>
-          <label class="dca-lbl" id="alertInpLabel">Target Price (USD)</label>
-          <div class="alert-inp-row">
-            <input class="alert-inp" id="alertVal" type="number" placeholder="100000" min="0"/>
-          </div>
+          <label class="font-mono text-[10px] tracking-widest text-slate-500 uppercase block mb-2" id="alertValLabel">Target Price (USD)</label>
+          <input id="alertVal" type="number" placeholder="100000" min="0"
+                 class="w-full bg-deep border border-line rounded-lg px-4 py-3 font-mono text-lg text-white outline-none focus:border-btc transition-colors"/>
         </div>
-        <button class="alert-add-btn" id="alertAddBtn">+ Add Alert</button>
-        <div class="alert-note">⚠ Alerts use browser Notifications API. Click "Allow" when prompted. Alerts only fire while this tab is open.</div>
+        <button id="alertAddBtn"
+                class="w-full py-3.5 rounded-xl bg-gradient-to-r from-ruby/80 to-ruby text-white font-black text-sm tracking-widest uppercase
+                       hover:-translate-y-0.5 hover:shadow-[0_8px_20px_rgba(255,77,106,.3)] transition-all">
+          + SET ALERT
+        </button>
+        <div class="p-3.5 bg-btc/5 border border-btc/20 rounded-lg font-mono text-xs text-slate-400">
+          ⚠ Alerts fire while this tab is open. Browser notifications required.
+        </div>
       </div>
     </div>
-    <div class="alerts-list">
-      <div style="font-size:17px;font-weight:700;margin-bottom:18px">Active Alerts</div>
+    <div class="bg-card border border-line/70 rounded-2xl p-6">
+      <h3 class="font-bold text-lg mb-4">Active Alerts</h3>
       <div id="alertsList">
-        <div style="color:var(--t4);font-family:var(--mono);font-size:13px;padding:20px 0;text-align:center">No alerts set. Add one on the left.</div>
+        <p class="text-center font-mono text-xs text-slate-600 py-8">No alerts configured.</p>
       </div>
     </div>
   </div>
 </section>
 
-<!-- ══════════════ NEWS ══════════════ -->
+<!-- ════════════════ NEWS PAGE ════════════════ -->
 <section class="page" id="page-news">
-  <div style="margin-bottom:24px">
-    <div class="sect-hdr"><div class="sect-title">Bitcoin News</div><div class="sect-line"></div><div class="sect-pill">LIVE FEED</div></div>
+  <div class="mb-5 flex items-center gap-3">
+    <h2 class="font-black text-2xl tracking-widest uppercase">Crypto News</h2>
+    <div class="flex-1 h-px bg-line"></div>
+    <button id="newsRefreshBtn"
+            class="font-mono text-[10px] text-btc bg-btc/10 border border-btc/20 px-3 py-1.5 rounded-full tracking-widest hover:bg-btc/20 transition-all">
+      ↻ Refresh
+    </button>
   </div>
-  <div class="news-grid" id="newsGrid">
-    <div class="news-empty" style="grid-column:span 3">
-      <div style="font-size:32px;margin-bottom:10px">📰</div>
-      Loading news feed…
-    </div>
+  <!-- News source pills -->
+  <div class="flex flex-wrap gap-2 mb-5">
+    <span class="font-mono text-[10px] text-slate-600 self-center mr-1">SOURCES:</span>
+    <span class="font-mono text-[10px] px-3 py-1 bg-card border border-line rounded-full text-slate-400">Bitcoin Magazine</span>
+    <span class="font-mono text-[10px] px-3 py-1 bg-card border border-line rounded-full text-slate-400">Decrypt</span>
+    <span class="font-mono text-[10px] px-3 py-1 bg-card border border-line rounded-full text-slate-400">CoinDesk</span>
+    <span class="font-mono text-[10px] px-3 py-1 bg-card border border-line rounded-full text-slate-400">Cointelegraph</span>
+    <span class="font-mono text-[10px] px-3 py-1 bg-card border border-line rounded-full text-slate-400">The Block</span>
+  </div>
+  <div id="newsGrid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+    <!-- Skeletons -->
+    <div class="skeleton h-44 rounded-xl"></div>
+    <div class="skeleton h-44 rounded-xl"></div>
+    <div class="skeleton h-44 rounded-xl"></div>
+    <div class="skeleton h-44 rounded-xl"></div>
+    <div class="skeleton h-44 rounded-xl"></div>
+    <div class="skeleton h-44 rounded-xl"></div>
   </div>
 </section>
 
-</main><!-- /main -->
+</main>
 
-<!-- FOOTER -->
-<footer class="footer">
-  <span>BITPULSE</span>
-  <span class="ft-sep">·</span>
-  <span id="ftPrice">BTC: loading…</span>
-  <span class="ft-sep">·</span>
-  <span>Data: CoinGecko · Blockchain.info · alternative.me</span>
-  <span class="ft-sep" style="flex:1"></span>
-  <span class="ft-refresh" id="ftRefresh">Next refresh in —s</span>
+<!-- ═══ FOOTER ═══ -->
+<footer class="sticky bottom-0 z-50 flex items-center gap-0 px-6 h-9
+               bg-ink/90 backdrop-blur-xl border-t border-line/50
+               font-mono text-[10px] text-slate-600">
+  <span class="text-btc font-semibold">BITPULSE</span>
+  <span class="mx-3 text-slate-700">·</span>
+  <span id="ftPrice" class="text-btc">BTC: loading…</span>
+  <span class="mx-3 text-slate-700">·</span>
+  <span>CoinGecko · Blockchain.info · Mempool.space</span>
+  <div class="flex-1"></div>
+  <span id="ftRefresh" class="text-slate-700">Refresh in —s</span>
 </footer>
 
-<div class="toast-container" id="toastContainer"></div>
+<!-- ═══ TOASTS ═══ -->
+<div id="toastBox" class="fixed bottom-12 right-4 z-[999] flex flex-col gap-2 pointer-events-none"></div>
 
 </div><!-- /app -->
 
+<!-- Badge styles (Tailwind can't do dynamic class generation well for variants) -->
+<style>
+.badge-flat  { display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;background:#111e2e;color:#4d6e8a;border:1px solid #1c2f44; }
+.badge-up    { display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;background:rgba(16,217,138,.1);color:#10d98a;border:1px solid rgba(16,217,138,.2); }
+.badge-dn    { display:inline-flex;align-items:center;padding:2px 10px;border-radius:20px;font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;background:rgba(255,77,106,.1);color:#ff4d6a;border:1px solid rgba(255,77,106,.2); }
+.active-sym  { background:rgba(247,147,26,.12);border-color:rgba(247,147,26,.35);color:#f7931a; }
+.active-int  { background:rgba(247,147,26,.12);border-color:rgba(247,147,26,.35);color:#f7931a; }
+</style>
+
 <script>
-/* ═══════════════════════════════════════════════
-   BITPULSE · app.js (inline)
-   ═══════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════
+   BITPULSE · Inline JS
+   GitHub Pages compatible — no build step
+   ═══════════════════════════════════════════ */
 'use strict';
 
-// ─── STATE ───────────────────────────────────
+// ─── STATE ──────────────────────────────────
 const S = {
-  btc: null, global: null, fx: {}, blockHeight: null,
-  fearGreed: null, topCoins: [],
-  portfolio: JSON.parse(localStorage.getItem('bp_portfolio')||'[]'),
-  alerts: JSON.parse(localStorage.getItem('bp_alerts')||'[]'),
-  dcaFreq: 'monthly',
-  refreshIn: 60, timer: null, halvingTimer: null,
+  btc: null, global: null, fx: {}, blockH: null,
+  fg: null, coins: [],
+  portfolio: JSON.parse(localStorage.getItem('bp_p') || '[]'),
+  alerts:    JSON.parse(localStorage.getItem('bp_a') || '[]'),
+  dcaFreq:   'monthly',
+  refreshIn: 60,
+  currentSym:'BINANCE:BTCUSDT',
+  currentInt:'60',
+  newsLoaded: false,
 };
 
-// ─── HALVING MATH ────────────────────────────
-const HALVING_INTERVAL = 210000;
-function nextHalvingBlock(h){ return (Math.floor(h/HALVING_INTERVAL)+1)*HALVING_INTERVAL; }
-function halvingBlocksLeft(h){ return Math.max(0, nextHalvingBlock(h)-h); }
-function halvingMsLeft(h){ return halvingBlocksLeft(h)*10*60*1000; }
-
-// ─── FORMATTERS ──────────────────────────────
+// ─── FORMATTERS ─────────────────────────────
 const F = {
-  p:  n=>n>=1000?n.toLocaleString('en-US',{maximumFractionDigits:0}):n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
-  p4: n=>n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2}),
-  k:  n=>{if(n>=1e12)return'$'+(n/1e12).toFixed(2)+'T';if(n>=1e9)return'$'+(n/1e9).toFixed(2)+'B';if(n>=1e6)return'$'+(n/1e6).toFixed(2)+'M';return'$'+n.toLocaleString()},
-  pct:n=>(n>=0?'+':'')+n.toFixed(2)+'%',
-  n:  n=>Math.round(n).toLocaleString('en-US'),
+  p:   n => n >= 1000 ? n.toLocaleString('en-US', {maximumFractionDigits:0}) : n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}),
+  p2:  n => n.toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2}),
+  k:   n => {
+    if (n>=1e12) return '$'+(n/1e12).toFixed(2)+'T';
+    if (n>=1e9)  return '$'+(n/1e9).toFixed(2)+'B';
+    if (n>=1e6)  return '$'+(n/1e6).toFixed(2)+'M';
+    return '$'+n.toLocaleString();
+  },
+  pct: n => (n>=0?'+':'')+n.toFixed(2)+'%',
+  n:   n => Math.round(n).toLocaleString('en-US'),
+  ts:  () => {
+    const d = new Date();
+    return d.toLocaleTimeString('en-US', {hour:'2-digit', minute:'2-digit', second:'2-digit'});
+  },
+  dateStr: () => {
+    const d = new Date();
+    return d.toLocaleDateString('en-US', {weekday:'short', month:'short', day:'numeric', year:'numeric'});
+  },
 };
 
-// ─── TOAST ───────────────────────────────────
-function toast(msg, type=''){
-  const c=document.getElementById('toastContainer');
-  const t=document.createElement('div');
-  t.className='toast '+(type);
-  t.textContent=msg;
-  c.appendChild(t);
-  setTimeout(()=>t.remove(),3500);
+// ─── REAL-TIME CLOCK ────────────────────────
+function startClock() {
+  function tick() {
+    const t = F.ts();
+    const clockEl = document.getElementById('realClock');
+    const dateEl  = document.getElementById('tbDate');
+    if (clockEl) clockEl.textContent = t;
+    if (dateEl)  dateEl.textContent  = F.dateStr();
+  }
+  tick();
+  setInterval(tick, 1000);
 }
 
-// ─── BACKGROUND CANVAS ───────────────────────
-(function initBG(){
-  const cv=document.getElementById('bgCanvas');
-  const ctx=cv.getContext('2d');
-  let W,H,pts=[];
-  function resize(){W=cv.width=innerWidth;H=cv.height=innerHeight;initPts()}
-  function initPts(){
-    pts=[];
-    for(let i=0;i<55;i++) pts.push({x:Math.random()*W,y:Math.random()*H,vx:(Math.random()-.5)*.3,vy:(Math.random()-.5)*.3,r:Math.random()*1.5+.5});
+// ─── HALVING ────────────────────────────────
+const HALV = 210000;
+function halvLeft(h)  { return ((Math.floor(h/HALV)+1)*HALV) - h; }
+function halvMs(h)    { return halvLeft(h) * 10 * 60 * 1000; }
+
+function startHalvTimer() {
+  if (S._halvT) clearInterval(S._halvT);
+  function tick() {
+    const h  = S.blockH || 895000;
+    const ms = halvMs(h);
+    const s  = Math.floor(ms / 1000);
+    const d  = Math.floor(s / 86400);
+    const hr = Math.floor((s % 86400) / 3600);
+    const mn = Math.floor((s % 3600) / 60);
+    const sc = s % 60;
+    const pad = v => String(v).padStart(2,'0');
+    setText('hvDays', F.n(d));
+    setText('hvHrs', pad(hr));
+    setText('hvMin', pad(mn));
+    setText('hvSec', pad(sc));
+    setText('hvBlocks', F.n(halvLeft(h)));
+    const est = new Date(Date.now() + ms);
+    setText('hvDate', est.toLocaleDateString('en-US',{month:'long',year:'numeric'}));
   }
-  function draw(){
+  tick();
+  S._halvT = setInterval(tick, 1000);
+}
+
+// ─── TOAST ──────────────────────────────────
+function toast(msg, type='') {
+  const box = document.getElementById('toastBox');
+  const t = document.createElement('div');
+  const colors = {success:'bg-acid/20 border-acid/40 text-acid', warning:'bg-btc/15 border-btc/35 text-btc', error:'bg-ruby/20 border-ruby/40 text-ruby', '':'bg-edge border-rim text-slate-300'};
+  t.className = `toast-enter px-4 py-2.5 rounded-xl border font-mono text-xs backdrop-blur-sm ${colors[type]||colors['']}`;
+  t.textContent = msg;
+  box.appendChild(t);
+  setTimeout(() => t.remove(), 3500);
+}
+
+// ─── CANVAS SPARKLINE ───────────────────────
+function sparkline(id, data, color='#f7931a', fillColor='rgba(247,147,26,.12)') {
+  const cv = document.getElementById(id);
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  const W = cv.offsetWidth || 600;
+  const H = cv.offsetHeight || 80;
+  cv.width = W; cv.height = H;
+  if (!data || data.length < 2) return;
+  const mn = Math.min(...data), mx = Math.max(...data);
+  const pad = 4;
+  const xs = i => pad + (i/(data.length-1)) * (W-pad*2);
+  const ys = v => H - pad - ((v-mn)/(mx-mn||1)) * (H-pad*2);
+  ctx.clearRect(0,0,W,H);
+  // Fill
+  const fillGrad = ctx.createLinearGradient(0,0,0,H);
+  fillGrad.addColorStop(0, fillColor);
+  fillGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.beginPath(); ctx.moveTo(xs(0), H);
+  data.forEach((v,i) => ctx.lineTo(xs(i), ys(v)));
+  ctx.lineTo(xs(data.length-1), H); ctx.closePath();
+  ctx.fillStyle = fillGrad; ctx.fill();
+  // Line
+  const lineGrad = ctx.createLinearGradient(0,0,W,0);
+  lineGrad.addColorStop(0, color+'80'); lineGrad.addColorStop(1, color);
+  ctx.beginPath();
+  data.forEach((v,i) => i===0 ? ctx.moveTo(xs(i),ys(v)) : ctx.lineTo(xs(i),ys(v)));
+  ctx.strokeStyle = lineGrad; ctx.lineWidth = 2; ctx.lineJoin = 'round'; ctx.stroke();
+  // End dot
+  const lx = xs(data.length-1), ly = ys(data[data.length-1]);
+  ctx.beginPath(); ctx.arc(lx,ly,5,0,Math.PI*2);
+  ctx.fillStyle = color; ctx.fill();
+  ctx.beginPath(); ctx.arc(lx,ly,9,0,Math.PI*2);
+  ctx.fillStyle = color+'30'; ctx.fill();
+}
+
+// ─── BACKGROUND CANVAS ──────────────────────
+(function bgCanvas() {
+  const cv = document.getElementById('bgCanvas');
+  if (!cv) return;
+  const ctx = cv.getContext('2d');
+  let W, H, pts = [];
+  function resize() { W = cv.width = innerWidth; H = cv.height = innerHeight; genPts(); }
+  function genPts() {
+    pts = [];
+    for (let i=0; i<50; i++) pts.push({x:Math.random()*W, y:Math.random()*H, vx:(Math.random()-.5)*.25, vy:(Math.random()-.5)*.25, r:Math.random()*1.2+.4});
+  }
+  function draw() {
     ctx.clearRect(0,0,W,H);
-    pts.forEach(p=>{
-      p.x+=p.vx;p.y+=p.vy;
-      if(p.x<0||p.x>W)p.vx*=-1;
-      if(p.y<0||p.y>H)p.vy*=-1;
-      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
-      ctx.fillStyle='rgba(247,147,26,.4)';ctx.fill();
+    pts.forEach(p => {
+      p.x+=p.vx; p.y+=p.vy;
+      if(p.x<0||p.x>W) p.vx*=-1;
+      if(p.y<0||p.y>H) p.vy*=-1;
+      ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle='rgba(247,147,26,.35)'; ctx.fill();
     });
-    pts.forEach((a,i)=>pts.slice(i+1).forEach(b=>{
-      const dx=a.x-b.x,dy=a.y-b.y,d=Math.sqrt(dx*dx+dy*dy);
-      if(d<120){
-        ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
-        ctx.strokeStyle=`rgba(247,147,26,${(1-d/120)*.06})`;ctx.lineWidth=.5;ctx.stroke();
+    pts.forEach((a,i) => pts.slice(i+1).forEach(b => {
+      const dx=a.x-b.x, dy=a.y-b.y, d=Math.sqrt(dx*dx+dy*dy);
+      if (d < 110) {
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y);
+        ctx.strokeStyle=`rgba(247,147,26,${(1-d/110)*.05})`; ctx.lineWidth=.5; ctx.stroke();
       }
     }));
     requestAnimationFrame(draw);
   }
-  window.addEventListener('resize',resize);
-  resize();draw();
+  window.addEventListener('resize', resize);
+  resize(); draw();
 })();
 
-// ─── CANVAS SPARKLINES ───────────────────────
-function drawSparkline(canvasId, data, colorStart='#f7931a', colorEnd='#ffaa33', fill=true){
-  const cv=document.getElementById(canvasId);
-  if(!cv)return;
-  const ctx=cv.getContext('2d');
-  const W=cv.offsetWidth||cv.width;
-  const H=cv.offsetHeight||cv.height;
-  cv.width=W;cv.height=H;
-  if(!data||data.length<2){ctx.clearRect(0,0,W,H);return}
-  const mn=Math.min(...data),mx=Math.max(...data);
-  const pad=4;
-  const xs=i=>pad+(i/(data.length-1))*(W-pad*2);
-  const ys=v=>H-pad-((v-mn)/(mx-mn||1))*(H-pad*2);
-  const grad=ctx.createLinearGradient(0,0,W,0);
-  grad.addColorStop(0,colorStart);grad.addColorStop(1,colorEnd);
-  ctx.clearRect(0,0,W,H);
-  if(fill){
-    const fGrad=ctx.createLinearGradient(0,0,0,H);
-    fGrad.addColorStop(0,'rgba(247,147,26,.15)');fGrad.addColorStop(1,'rgba(247,147,26,0)');
-    ctx.beginPath();ctx.moveTo(xs(0),H);
-    data.forEach((v,i)=>ctx.lineTo(xs(i),ys(v)));
-    ctx.lineTo(xs(data.length-1),H);ctx.closePath();
-    ctx.fillStyle=fGrad;ctx.fill();
+// ─── SETTEXT ─────────────────────────────────
+function setText(id, v) { const el=document.getElementById(id); if(el) el.textContent=v; }
+
+// ─── FETCH HELPERS ────────────────────────────
+async function safeFetch(url) {
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(r.status);
+  return r.json();
+}
+
+async function fetchBTC()    { return safeFetch('https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false'); }
+async function fetchGlobal() { return safeFetch('https://api.coingecko.com/api/v3/global'); }
+async function fetchCoins()  { return safeFetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false'); }
+async function fetchFG()     { return safeFetch('https://api.alternative.me/fng/?limit=1').then(j=>parseInt(j.data[0].value,10)); }
+async function fetchBlock()  { return fetch('https://blockchain.info/q/getblockcount').then(r=>r.text()).then(t=>parseInt(t.trim(),10)); }
+async function fetchFX()     { return safeFetch('https://open.er-api.com/v6/latest/USD').then(j=>j.rates||{}); }
+async function fetchMem()    { return safeFetch('https://mempool.space/api/mempool').catch(()=>null); }
+async function fetchFees()   { return safeFetch('https://mempool.space/api/v1/fees/recommended').catch(()=>null); }
+
+// ─── NEWS via Google RSS (CORS proxy) ────────
+const NEWS_FEEDS = [
+  { name:'CoinDesk',      rss:'https://www.coindesk.com/arc/outboundfeeds/rss/', color:'#f7931a' },
+  { name:'Decrypt',       rss:'https://decrypt.co/feed',                         color:'#10d98a' },
+  { name:'Cointelegraph', rss:'https://cointelegraph.com/rss',                   color:'#3b9eff' },
+  { name:'Bitcoin Mag',   rss:'https://bitcoinmagazine.com/.rss/full/',           color:'#ff4d6a' },
+  { name:'The Block',     rss:'https://www.theblock.co/rss.xml',                 color:'#9f7aea' },
+];
+
+const CORS_PROXIES = [
+  url => `https://api.allorigins.win/get?url=${encodeURIComponent(url)}`,
+  url => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+];
+
+async function fetchRSS(feed) {
+  for (const proxy of CORS_PROXIES) {
+    try {
+      const res  = await fetch(proxy(feed.rss), {signal: AbortSignal.timeout(8000)});
+      const json = await res.json();
+      const xml  = json.contents || json.data || '';
+      if (!xml) continue;
+      const parser = new DOMParser();
+      const doc    = parser.parseFromString(xml, 'text/xml');
+      const items  = [...doc.querySelectorAll('item')].slice(0, 4);
+      return items.map(item => ({
+        source:  feed.name,
+        color:   feed.color,
+        title:   item.querySelector('title')?.textContent?.trim() || '',
+        link:    item.querySelector('link')?.textContent?.trim() || '#',
+        desc:    stripHTML(item.querySelector('description')?.textContent || '').slice(0, 140),
+        date:    item.querySelector('pubDate')?.textContent || '',
+      })).filter(i => i.title);
+    } catch { continue; }
   }
-  ctx.beginPath();
-  data.forEach((v,i)=>i===0?ctx.moveTo(xs(i),ys(v)):ctx.lineTo(xs(i),ys(v)));
-  ctx.strokeStyle=grad;ctx.lineWidth=2;ctx.lineJoin='round';ctx.stroke();
-  // current dot
-  const lx=xs(data.length-1),ly=ys(data[data.length-1]);
-  ctx.beginPath();ctx.arc(lx,ly,4,0,Math.PI*2);ctx.fillStyle='#f7931a';ctx.fill();
-  ctx.beginPath();ctx.arc(lx,ly,7,0,Math.PI*2);ctx.fillStyle='rgba(247,147,26,.25)';ctx.fill();
+  return [];
 }
 
-// ─── FEAR & GREED GAUGE ──────────────────────
-function updateFGGauge(val){
-  const arc=document.getElementById('fgArc');
-  const needle=document.getElementById('fgNeedle');
-  if(!arc||!needle)return;
-  const total=188.4;
-  const offset=total-(val/100*total);
-  arc.style.strokeDashoffset=offset;
-  const angle=(val/100*180)-90;
-  needle.style.transform=`rotate(${angle}deg)`;
-  const vEl=document.getElementById('fgValue');
-  const lEl=document.getElementById('fgLabel');
-  if(!vEl||!lEl)return;
-  vEl.textContent=val;
-  const labels=[
-    [0,25,'Extreme Fear','#ff4d6a'],
-    [25,45,'Fear','#ff944d'],
-    [45,55,'Neutral','#ffd14d'],
-    [55,75,'Greed','#a3e635'],
-    [75,101,'Extreme Greed','#10d98a'],
-  ];
-  const lObj=labels.find(([a,b])=>val>=a&&val<b)||labels[0];
-  vEl.style.color=lObj[3];
-  lEl.textContent=lObj[2];
-  lEl.style.color=lObj[3];
+function stripHTML(str) {
+  const t = document.createElement('div');
+  t.innerHTML = str;
+  return t.textContent || '';
 }
 
-// ─── HALVING COUNTDOWN ───────────────────────
-function startHalvingTimer(){
-  if(S.halvingTimer)clearInterval(S.halvingTimer);
-  function tick(){
-    const h=S.blockHeight||890000;
-    const ms=halvingMsLeft(h);
-    const totalSec=Math.floor(ms/1000);
-    const d=Math.floor(totalSec/86400);
-    const hr=Math.floor((totalSec%86400)/3600);
-    const mn=Math.floor((totalSec%3600)/60);
-    const sc=totalSec%60;
-    const pad=v=>String(v).padStart(2,'0');
-    document.getElementById('hvDays').textContent=F.n(d);
-    document.getElementById('hvHrs').textContent=pad(hr);
-    document.getElementById('hvMin').textContent=pad(mn);
-    document.getElementById('hvSec').textContent=pad(sc);
-    document.getElementById('hvBlocks').textContent=F.n(halvingBlocksLeft(h))+' blocks';
-    const estMs=Date.now()+ms;
-    document.getElementById('hvDate').textContent=new Date(estMs).toLocaleDateString('en-US',{year:'numeric',month:'long'});
+async function loadNews() {
+  const grid = document.getElementById('newsGrid');
+  if (!grid) return;
+  grid.innerHTML = `<div class="skeleton h-44 rounded-xl"></div>`.repeat(6);
+
+  try {
+    const results = await Promise.allSettled(NEWS_FEEDS.map(fetchRSS));
+    const articles = results.flatMap(r => r.status==='fulfilled' ? r.value : []);
+
+    if (!articles.length) {
+      grid.innerHTML = renderNewsError();
+      return;
+    }
+
+    // Sort by date desc, dedup by title
+    const seen = new Set();
+    const unique = articles.filter(a => {
+      const k = a.title.toLowerCase().slice(0,40);
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    }).sort((a,b) => new Date(b.date) - new Date(a.date));
+
+    grid.innerHTML = unique.slice(0, 12).map(a => renderNewsCard(a)).join('');
+  } catch (e) {
+    grid.innerHTML = renderNewsError();
   }
-  tick();
-  S.halvingTimer=setInterval(tick,1000);
 }
 
-// ─── API CALLS ───────────────────────────────
-async function fetchBTC(){
-  const r=await fetch('https://api.coingecko.com/api/v3/coins/bitcoin?localization=false&tickers=false&market_data=true&community_data=false&developer_data=false&sparkline=false');
-  if(!r.ok)throw new Error('CG '+r.status);
-  return r.json();
+function renderNewsCard(a) {
+  const date = a.date ? new Date(a.date).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'}) : '';
+  const safe = a.title.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  const safeDesc = a.desc.replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return `
+  <div class="news-card bg-card border border-line/70 rounded-xl p-5 flex flex-col gap-3 transition-all duration-200 hover:-translate-y-0.5">
+    <div class="flex items-center justify-between">
+      <span class="font-mono text-[10px] tracking-widest uppercase font-semibold" style="color:${a.color}">${a.source}</span>
+      <span class="font-mono text-[10px] text-slate-600">${date}</span>
+    </div>
+    <h3 class="text-sm font-semibold text-slate-100 leading-snug line-clamp-2">${safe}</h3>
+    <p class="font-mono text-xs text-slate-500 leading-relaxed flex-1 line-clamp-2">${safeDesc}</p>
+    <a href="${a.link}" target="_blank" rel="noopener noreferrer"
+       class="inline-flex items-center gap-1 font-mono text-xs transition-colors hover:text-btc2"
+       style="color:${a.color}">Read article →</a>
+  </div>`;
 }
-async function fetchGlobal(){
-  const r=await fetch('https://api.coingecko.com/api/v3/global');
-  if(!r.ok)throw new Error('CG global '+r.status);
-  return r.json();
+
+function renderNewsError() {
+  return `<div class="col-span-full text-center py-16 font-mono text-sm text-slate-500">
+    <div class="text-4xl mb-3">📰</div>
+    <p class="font-semibold text-slate-400 mb-2">RSS feeds temporarily unavailable</p>
+    <p class="text-xs text-slate-600 mb-5">CORS restrictions may be blocking the request. Try again or visit:</p>
+    <div class="flex flex-wrap justify-center gap-3">
+      <a href="https://coindesk.com" target="_blank" class="px-3 py-1.5 bg-card border border-line rounded-lg text-btc hover:border-btc/40 transition-all">CoinDesk</a>
+      <a href="https://decrypt.co" target="_blank" class="px-3 py-1.5 bg-card border border-line rounded-lg text-acid hover:border-acid/40 transition-all">Decrypt</a>
+      <a href="https://cointelegraph.com" target="_blank" class="px-3 py-1.5 bg-card border border-line rounded-lg text-sky hover:border-sky/40 transition-all">Cointelegraph</a>
+      <a href="https://bitcoinmagazine.com" target="_blank" class="px-3 py-1.5 bg-card border border-line rounded-lg text-ruby hover:border-ruby/40 transition-all">Bitcoin Mag</a>
+      <a href="https://theblock.co" target="_blank" class="px-3 py-1.5 bg-card border border-line rounded-lg text-lilac hover:border-lilac/40 transition-all">The Block</a>
+    </div>
+  </div>`;
 }
-async function fetchTopCoins(){
-  const r=await fetch('https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&order=market_cap_desc&per_page=10&page=1&sparkline=false');
-  if(!r.ok)throw new Error('CG markets '+r.status);
-  return r.json();
-}
-async function fetchFearGreed(){
-  const r=await fetch('https://api.alternative.me/fng/?limit=1');
-  if(!r.ok)throw new Error('FG '+r.status);
-  const j=await r.json();
-  return parseInt(j.data[0].value,10);
-}
-async function fetchBlockHeight(){
-  const r=await fetch('https://blockchain.info/q/getblockcount');
-  return parseInt((await r.text()).trim(),10);
-}
-async function fetchFX(){
-  const r=await fetch('https://open.er-api.com/v6/latest/USD');
-  const j=await r.json();
-  return j.rates||{};
-}
-async function fetchMempool(){
-  try{
-    const r=await fetch('https://mempool.space/api/mempool');
-    const j=await r.json();
-    return j;
-  }catch{return null}
-}
-async function fetchFees(){
-  try{
-    const r=await fetch('https://mempool.space/api/v1/fees/recommended');
-    const j=await r.json();
-    return j;
-  }catch{return null}
-}
-async function fetchNews(){
-  try{
-    const r=await fetch('https://cryptopanic.com/api/v1/posts/?auth_token=demo&currencies=BTC&kind=news&public=true');
-    if(!r.ok)throw 0;
-    const j=await r.json();
-    return j.results?.slice(0,9)||[];
-  }catch{return null}
+
+// ─── TRADINGVIEW WIDGET ──────────────────────
+function loadTVWidget(sym, interval) {
+  const container = document.getElementById('tvContainer');
+  if (!container) return;
+  container.innerHTML = '';
+  const script = document.createElement('script');
+  script.src = 'https://s3.tradingview.com/external-embedding/embed-widget-advanced-chart.js';
+  script.async = true;
+  script.innerHTML = JSON.stringify({
+    autosize:              true,
+    symbol:                sym || 'BINANCE:BTCUSDT',
+    interval:              interval || '60',
+    timezone:              'Etc/UTC',
+    theme:                 'dark',
+    style:                 '1',
+    locale:                'en',
+    enable_publishing:     false,
+    backgroundColor:       'rgba(11,18,29,1)',
+    gridColor:             'rgba(30,50,72,0.4)',
+    withdateranges:        true,
+    hide_side_toolbar:     false,
+    allow_symbol_change:   true,
+    save_image:            true,
+    calendar:              false,
+    support_host:          'https://www.tradingview.com',
+    studies: [
+      'STD;EMA',
+      'STD;RSI',
+      'STD;MACD',
+      'STD;Bollinger_Bands',
+      'STD;Volume',
+    ],
+  });
+  container.appendChild(script);
 }
 
 // ─── RENDER DASHBOARD ────────────────────────
-function renderDashboard(){
-  const md=S.btc?.market_data;
-  const usd=md?.current_price?.usd||0;
+function renderDash() {
+  const md  = S.btc?.market_data;
+  const usd = md?.current_price?.usd || 0;
 
   // Hero price with flash
-  const hpEl=document.getElementById('heroPrice');
-  const prev=parseFloat(hpEl.dataset.prev||0);
-  hpEl.textContent='$'+F.p(usd);
-  if(prev&&usd!==prev){
-    hpEl.classList.remove('up','dn');
-    void hpEl.offsetWidth;
-    hpEl.classList.add(usd>prev?'up':'dn');
-    setTimeout(()=>hpEl.classList.remove('up','dn'),1000);
+  const hEl  = document.getElementById('heroPrice');
+  const prev = parseFloat(hEl?.dataset.prev || 0);
+  if (hEl) {
+    hEl.textContent = '$' + F.p(usd);
+    if (prev && usd !== prev) {
+      const cls = usd > prev ? 'flash-up' : 'flash-down';
+      hEl.classList.add(cls);
+      setTimeout(() => hEl.classList.remove(cls), 900);
+    }
+    hEl.dataset.prev = usd;
   }
-  hpEl.dataset.prev=usd;
-  document.getElementById('heroSatsPerUSD').textContent=usd>0?F.n(1e8/usd)+' SATS':'—';
+
+  // Sats
+  if (usd > 0) {
+    setText('heroSatsUSD', F.n(1e8 / usd) + ' SATS');
+    setText('heroSatsBTC', '1 BTC = 100,000,000 SATS');
+  }
+
+  // ATH
+  const ath = md?.ath?.usd || 0;
+  const athPct = ath ? ((usd/ath)*100).toFixed(1) : 0;
+  setText('heroATH', `ATH: $${F.p(ath)} · You're at ${athPct}%`);
 
   // Badges
-  const makeBadge=(id,val,label)=>{
-    const el=document.getElementById(id);
-    if(!el)return;
-    el.textContent=label+' '+(val>=0?'+':'')+val.toFixed(2)+'%';
-    el.className='badge '+(Math.abs(val)<.1?'flat':val>=0?'up':'dn');
+  const mkBadge = (id, val, lbl) => {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const cls = Math.abs(val)<.05 ? 'badge-flat' : val>=0 ? 'badge-up' : 'badge-dn';
+    el.className = cls;
+    el.textContent = lbl + ' ' + (val>=0?'+':'') + val.toFixed(2) + '%';
   };
-  makeBadge('badge24h', md?.price_change_percentage_24h||0,'24h');
-  makeBadge('badge7d',  md?.price_change_percentage_7d||0,'7d');
-  makeBadge('badge30d', md?.price_change_percentage_30d||0,'30d');
+  mkBadge('badge24h', md?.price_change_percentage_24h||0, '24h');
+  mkBadge('badge7d',  md?.price_change_percentage_7d||0,  '7d');
+  mkBadge('badge30d', md?.price_change_percentage_30d||0, '30d');
 
-  const mcap=md?.market_cap?.usd||0;
-  const mcapEl=document.getElementById('badgeMCap');
-  if(mcapEl){mcapEl.textContent='MCap '+F.k(mcap);mcapEl.className='badge info'}
-
-  // Hero mini stats
-  const ath=md?.ath?.usd||0;
-  const athPct=ath?((usd/ath)*100).toFixed(1):0;
-  setText('hmsATH','$'+F.p(ath));
-  setText('hmsATHPct',athPct+'% of ATH');
-  setText('hmsVol',F.k(md?.total_volume?.usd||0));
-  const dom=S.global?.data?.market_cap_percentage?.btc;
-  setText('hmsDom',dom?dom.toFixed(1)+'%':'—');
-
-  // Stats cards
-  setText('statMcap',F.k(mcap));
-  const vol=md?.total_volume?.usd||0;
-  setText('statVol',F.k(vol));
-  const volRatio=mcap?((vol/mcap)*100).toFixed(2):0;
-  setText('statVolRatio',volRatio+'% of mcap');
-
-  const circ=md?.circulating_supply||0;
-  const maxS=21000000;
-  const supplyPct=((circ/maxS)*100).toFixed(2);
-  setText('statSupply',F.n(circ)+' BTC');
-  const sfEl=document.getElementById('supplyFill');
-  if(sfEl)sfEl.style.width=supplyPct+'%';
-  setText('supplyPct',supplyPct+'%');
-
-  setText('statBlock',S.blockHeight?F.n(S.blockHeight):'—');
-  if(S.blockHeight){
-    const halvingsCompleted=Math.floor(S.blockHeight/210000);
-    const reward=[50,25,12.5,6.25,3.125][halvingsCompleted]||3.125;
-    setText('ocReward',reward+' BTC');
-  }
+  // Hero mini
+  const mcap = md?.market_cap?.usd || 0;
+  const vol  = md?.total_volume?.usd || 0;
+  setText('hmsMcap', F.k(mcap));
+  setText('hmsVol',  F.k(vol));
+  setText('hmsATH2', '$'+F.p(ath));
 
   // Dominance
-  if(dom){
-    setText('statDom',dom.toFixed(1)+'%');
-    // Draw fake sparkline for dom
-    const domData=Array.from({length:30},(_,i)=>dom-2+Math.sin(i/5)*2+Math.random()*0.5);
-    setTimeout(()=>drawSparkline('domSparkline',domData,'#3b9eff','#60baff',false),100);
+  const dom = S.global?.data?.market_cap_percentage?.btc;
+  if (dom) {
+    setText('hmsDom', dom.toFixed(1)+'%');
+    setText('statDom', dom.toFixed(1)+'%');
+    setText('chartDom', dom.toFixed(1)+'%');
   }
 
+  // Stats
+  setText('statMcap', F.k(mcap));
+  setText('statVol', F.k(vol));
+  setText('statVolPct', mcap ? ((vol/mcap)*100).toFixed(2)+'% of mcap' : '—');
+
+  const circ = md?.circulating_supply || 0;
+  setText('statSupply', F.n(circ)+' BTC');
+  const spct = ((circ/21e6)*100).toFixed(2);
+  const sfEl = document.getElementById('supplyFill');
+  if (sfEl) sfEl.style.width = spct+'%';
+  setText('supplyPct', spct+'%');
+
+  setText('statBlock', S.blockH ? F.n(S.blockH) : '—');
+
+  // Block reward
+  if (S.blockH) {
+    const halvs = Math.floor(S.blockH/210000);
+    const reward = [50,25,12.5,6.25,3.125,1.5625][halvs] || 3.125;
+    setText('ocReward', reward+' BTC');
+  }
+
+  // On-chain
+  setText('ocHash', '~'+(580+Math.floor(Math.random()*40))+' EH/s');
+  setText('ocRevenue', F.k(usd*144*3.125));
+
   // Price ranges
-  const setRange=(low,high,cur,idL,idH,idF,idP)=>{
-    document.getElementById(idL).textContent='$'+F.p(low);
-    document.getElementById(idH).textContent='$'+F.p(high);
-    const pct=high===low?50:Math.max(2,Math.min(97,((cur-low)/(high-low))*100));
-    const fEl=document.getElementById(idF);
-    const pEl=document.getElementById(idP);
-    if(fEl)fEl.style.width=pct+'%';
-    if(pEl)pEl.style.left=pct+'%';
+  const setRange = (lowId,highId,fillId,dotId,low,high,cur) => {
+    setText(lowId, '$'+F.p(low));
+    setText(highId, '$'+F.p(high));
+    const pct = high===low ? 50 : Math.max(3, Math.min(96, ((cur-low)/(high-low))*100));
+    const fEl = document.getElementById(fillId);
+    const dEl = document.getElementById(dotId);
+    if (fEl) fEl.style.width = pct+'%';
+    if (dEl) dEl.style.left  = pct+'%';
   };
-  setRange(md?.low_24h?.usd||0,md?.high_24h?.usd||0,usd,'rLow24','rHigh24','rFill24','rPos24');
-  const l7=usd*0.93,h7=usd*1.07;
-  setRange(l7,h7,usd,'rLow7','rHigh7','rFill7','rPos7');
-  const athEl=document.getElementById('rHighATH');
-  if(athEl)athEl.textContent='$'+F.p(ath);
-  const athPctFill=ath?Math.max(2,Math.min(97,(usd/ath)*100)):50;
-  const aFill=document.getElementById('rFillATH'),aPos=document.getElementById('rPosATH');
-  if(aFill)aFill.style.width=athPctFill+'%';
-  if(aPos)aPos.style.left=athPctFill+'%';
+  const low24  = md?.low_24h?.usd  || usd*0.97;
+  const high24 = md?.high_24h?.usd || usd*1.03;
+  setRange('rLow24','rHigh24','rFill24','rDot24', low24, high24, usd);
+  setRange('rLow7','rHigh7','rFill7','rDot7', usd*0.92, usd*1.08, usd);
+  setText('rHighATH', '$'+F.p(ath));
+  const athPctFill = ath ? Math.max(3, Math.min(96, (usd/ath)*100)) : 50;
+  const fATH = document.getElementById('rFillATH');
+  const dATH = document.getElementById('rDotATH');
+  if (fATH) fATH.style.width = athPctFill+'%';
+  if (dATH) dATH.style.left  = athPctFill+'%';
 
-  // Footer
-  setText('ftPrice','BTC: $'+F.p(usd));
-
-  // Converter rate display
-  setText('convRateDisplay','1 BTC = $'+F.p(usd));
-
-  // Hash rate (estimated from block data — rough)
-  setText('ocHash','~'+(Math.floor(Math.random()*50+580))+' EH/s');
-  const dailyMining=usd*144*3.125;
-  setText('ocMining',F.k(dailyMining));
+  // Fear & Greed gauge
+  if (S.fg !== null) {
+    const arc = document.getElementById('fgArc');
+    const need = document.getElementById('fgNeedle');
+    if (arc)  arc.style.strokeDashoffset = 188.4 - (S.fg/100)*188.4;
+    if (need) need.style.transform = `rotate(${(S.fg/100)*180-90}deg)`;
+    const FG_LABELS = [[0,25,'Extreme Fear','#ff4d6a'],[25,45,'Fear','#ffa733'],[45,55,'Neutral','#ffd14d'],[55,75,'Greed','#a3e635'],[75,101,'Extreme Greed','#10d98a']];
+    const lbl = FG_LABELS.find(([a,b])=>S.fg>=a&&S.fg<b)||FG_LABELS[2];
+    const fgV = document.getElementById('fgValue');
+    const fgL = document.getElementById('fgLabel');
+    if (fgV) { fgV.textContent=S.fg; fgV.style.color=lbl[3]; }
+    if (fgL) { fgL.textContent=lbl[2]; fgL.style.color=lbl[3]; }
+  }
 
   // Currencies
   renderCurrencies(usd);
@@ -1466,442 +1418,475 @@ function renderDashboard(){
   // Ticker
   renderTicker();
 
-  // Price chart (simulated 7d)
-  renderPriceChart(usd, md?.price_change_percentage_7d||0);
+  // Sparkline
+  const pct7 = md?.price_change_percentage_7d || 0;
+  const spark = Array.from({length:42}, (_,i) => {
+    const t = i/41;
+    const startP = usd/(1+pct7/100);
+    return startP + (usd-startP)*t + (Math.random()-.5)*usd*.025;
+  });
+  spark[spark.length-1] = usd;
+  setTimeout(() => sparkline('sparkCanvas', spark), 100);
 
-  // Portfolio
-  updatePortfolioDisplay();
+  // Chart key levels
+  setText('chartR1', '$'+F.p(high24*1.02));
+  setText('chartCur', '$'+F.p(usd));
+  setText('chartS1', '$'+F.p(low24*0.99));
+  setText('chartS2', '$'+F.p(low24*0.96));
+  setText('chartVol', F.k(vol));
 
-  // Alerts check
+  // Footer
+  setText('ftPrice', 'BTC: $'+F.p(usd));
+  setText('convRate', '1 BTC = $'+F.p(usd));
+
+  // Portfolio refresh
+  updatePortfolio();
   checkAlerts(usd);
-
-  // Fear & greed
-  if(S.fearGreed!==null) updateFGGauge(S.fearGreed);
 }
 
-function setText(id,val){const el=document.getElementById(id);if(el)el.textContent=val}
-
-function renderCurrencies(btcUSD){
-  const CURRS=[
-    {c:'USD',f:'🇺🇸',n:'US Dollar',s:'$',d:0},
-    {c:'EUR',f:'🇪🇺',n:'Euro',s:'€',d:0},
-    {c:'GBP',f:'🇬🇧',n:'Pound',s:'£',d:0},
-    {c:'JPY',f:'🇯🇵',n:'Yen',s:'¥',d:0},
-    {c:'BRL',f:'🇧🇷',n:'Real',s:'R$',d:0},
-    {c:'CAD',f:'🇨🇦',n:'CAD',s:'C$',d:0},
-    {c:'AUD',f:'🇦🇺',n:'AUD',s:'A$',d:0},
-    {c:'CHF',f:'🇨🇭',n:'Franc',s:'Fr',d:0},
-    {c:'MXN',f:'🇲🇽',n:'Peso',s:'$',d:0},
-    {c:'INR',f:'🇮🇳',n:'Rupee',s:'₹',d:0},
-    {c:'KRW',f:'🇰🇷',n:'Won',s:'₩',d:0},
-    {c:'ARS',f:'🇦🇷',n:'ARS',s:'$',d:0},
+function renderCurrencies(usd) {
+  const CURRS = [
+    {c:'USD',f:'🇺🇸',n:'Dollar',  s:'$',   d:0},
+    {c:'EUR',f:'🇪🇺',n:'Euro',    s:'€',   d:0},
+    {c:'GBP',f:'🇬🇧',n:'Pound',   s:'£',   d:0},
+    {c:'JPY',f:'🇯🇵',n:'Yen',     s:'¥',   d:0},
+    {c:'BRL',f:'🇧🇷',n:'Real',    s:'R$',  d:0},
+    {c:'CAD',f:'🇨🇦',n:'CAD',     s:'C$',  d:0},
+    {c:'AUD',f:'🇦🇺',n:'AUD',     s:'A$',  d:0},
+    {c:'CHF',f:'🇨🇭',n:'Franc',   s:'Fr',  d:0},
+    {c:'MXN',f:'🇲🇽',n:'Peso',    s:'$',   d:0},
+    {c:'INR',f:'🇮🇳',n:'Rupee',   s:'₹',   d:0},
+    {c:'KRW',f:'🇰🇷',n:'Won',     s:'₩',   d:0},
+    {c:'ARS',f:'🇦🇷',n:'ARS',     s:'$',   d:0},
   ];
-  const g=document.getElementById('currGrid');
-  if(!g)return;
-  g.innerHTML='';
-  CURRS.forEach(cc=>{
-    const rate=cc.c==='USD'?1:(S.fx[cc.c]||null);
-    if(!rate)return;
-    const val=btcUSD*rate;
-    const fmt=val>=1e6?val.toLocaleString('en-US',{maximumFractionDigits:0}):val>=1000?val.toLocaleString('en-US',{maximumFractionDigits:0}):val.toLocaleString('en-US',{maximumFractionDigits:2});
-    const div=document.createElement('div');
-    div.className='curr-item';
-    div.innerHTML=`<div class="curr-left"><span class="curr-flag">${cc.f}</span><span class="curr-code">${cc.c}</span></div><div class="curr-val">${cc.s}${fmt}</div>`;
-    g.appendChild(div);
-  });
+  const g = document.getElementById('currGrid');
+  if (!g) return;
+  g.innerHTML = CURRS.map(cc => {
+    const rate = cc.c==='USD' ? 1 : (S.fx[cc.c] || null);
+    if (!rate) return '';
+    const val = usd * rate;
+    const fmtd = val >= 1e6 ? val.toLocaleString('en-US',{maximumFractionDigits:0})
+                : val >= 1000 ? val.toLocaleString('en-US',{maximumFractionDigits:0})
+                : val.toLocaleString('en-US',{maximumFractionDigits:2});
+    return `<div class="flex items-center justify-between bg-deep border border-line rounded-lg px-3 py-2 hover:border-mute transition-colors">
+      <div class="flex items-center gap-2">
+        <span class="text-lg">${cc.f}</span>
+        <span class="font-mono text-[10px] text-slate-500">${cc.c}</span>
+      </div>
+      <span class="font-mono text-sm font-semibold text-white">${cc.s}${fmtd}</span>
+    </div>`;
+  }).join('');
 }
 
-function renderTicker(){
-  const coins=S.topCoins;
-  if(!coins.length)return;
-  const map={'bitcoin':'tBTC','ethereum':'tETH','binancecoin':'tBNB','solana':'tSOL','ripple':'tXRP','cardano':'tADA','dogecoin':'tDOGE','avalanche-2':'tAVAX'};
-  coins.forEach(c=>{
-    const id=map[c.id];
-    if(!id)return;
-    const el=document.getElementById(id);
-    if(!el)return;
-    const pct=c.price_change_percentage_24h||0;
-    el.innerHTML=`<span style="color:var(--t1)">$${F.p(c.current_price)}</span> <span class="tick-chg ${pct>=0?'up':'dn'}">${F.pct(pct)}</span>`;
+function renderTicker() {
+  const map = {bitcoin:'tBTC',ethereum:'tETH',binancecoin:'tBNB',solana:'tSOL',ripple:'tXRP',cardano:'tADA',dogecoin:'tDOGE','avalanche-2':'tAVAX'};
+  S.coins.forEach(c => {
+    const id = map[c.id];
+    if (!id) return;
+    const pct = c.price_change_percentage_24h || 0;
+    const html = `<span class="text-slate-200">$${F.p(c.current_price)}</span> <span class="${pct>=0?'text-acid':'text-ruby'}">${F.pct(pct)}</span>`;
+    [id, id+'2'].forEach(i => { const el=document.getElementById(i); if(el) el.innerHTML=html; });
   });
-}
-
-function renderPriceChart(currentPrice, pct7d){
-  const cv=document.getElementById('priceChart');
-  if(!cv)return;
-  const points=42;
-  const data=[];
-  const startPrice=currentPrice/(1+pct7d/100);
-  for(let i=0;i<points;i++){
-    const t=i/(points-1);
-    const trend=startPrice+(currentPrice-startPrice)*t;
-    const noise=(Math.random()-.5)*currentPrice*0.03;
-    data.push(trend+noise);
-  }
-  data[data.length-1]=currentPrice;
-  drawSparkline('priceChart',data,'#f7931a','#ffa733',true);
 }
 
 // ─── CONVERTER ───────────────────────────────
-const CINPS={
-  BTC:{id:'cBTC',toUSD:v=>v*btcNow()},
-  SATS:{id:'cSATS',toUSD:v=>(v/1e8)*btcNow()},
-  USD:{id:'cUSD',toUSD:v=>v},
-  EUR:{id:'cEUR',toUSD:v=>v/(S.fx.EUR||0.92)},
-  GBP:{id:'cGBP',toUSD:v=>v/(S.fx.GBP||0.79)},
-  JPY:{id:'cJPY',toUSD:v=>v/(S.fx.JPY||149)},
-  BRL:{id:'cBRL',toUSD:v=>v/(S.fx.BRL||5)},
+const CINPS = {
+  BTC:  {id:'cBTC',  toUSD: v => v * btcP()},
+  SATS: {id:'cSATS', toUSD: v => (v/1e8) * btcP()},
+  USD:  {id:'cUSD',  toUSD: v => v},
+  EUR:  {id:'cEUR',  toUSD: v => v / (S.fx.EUR || 0.92)},
+  GBP:  {id:'cGBP',  toUSD: v => v / (S.fx.GBP || 0.79)},
+  JPY:  {id:'cJPY',  toUSD: v => v / (S.fx.JPY || 149)},
 };
-function btcNow(){return S.btc?.market_data?.current_price?.usd||0}
-function updateConv(src){
-  const usdVal=CINPS[src].toUSD(parseFloat(document.getElementById(CINPS[src].id).value)||0);
-  const p=btcNow();if(!p)return;
-  Object.entries(CINPS).forEach(([k,v])=>{
-    if(k===src)return;
-    const el=document.getElementById(v.id);if(!el)return;
-    let val;
-    switch(k){
-      case'BTC': val=(usdVal/p).toFixed(8);break;
-      case'SATS': val=Math.round((usdVal/p)*1e8);break;
-      case'USD': val=usdVal.toFixed(2);break;
-      case'EUR': val=(usdVal*(S.fx.EUR||0.92)).toFixed(2);break;
-      case'GBP': val=(usdVal*(S.fx.GBP||0.79)).toFixed(2);break;
-      case'JPY': val=Math.round(usdVal*(S.fx.JPY||149));break;
-      case'BRL': val=(usdVal*(S.fx.BRL||5)).toFixed(2);break;
-    }
-    el.value=val;
-  });
-}
-function initConverter(){
-  Object.entries(CINPS).forEach(([k])=>document.getElementById(CINPS[k].id)?.addEventListener('input',()=>updateConv(k)));
-  // Quick presets
-  document.querySelectorAll('.qp-btn').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const el=document.getElementById('cBTC');
-      if(el){el.value=btn.dataset.val;updateConv('BTC')}
-    });
+function btcP() { return S.btc?.market_data?.current_price?.usd || 0; }
+
+function updateConv(src) {
+  const p = btcP(); if (!p) return;
+  const usdVal = CINPS[src].toUSD(parseFloat(document.getElementById(CINPS[src].id)?.value) || 0);
+  Object.entries(CINPS).forEach(([k,v]) => {
+    if (k===src) return;
+    const el = document.getElementById(v.id); if (!el) return;
+    const vals = {
+      BTC:  (usdVal/p).toFixed(8),
+      SATS: Math.round((usdVal/p)*1e8),
+      USD:  usdVal.toFixed(2),
+      EUR:  (usdVal*(S.fx.EUR||0.92)).toFixed(2),
+      GBP:  (usdVal*(S.fx.GBP||0.79)).toFixed(2),
+      JPY:  Math.round(usdVal*(S.fx.JPY||149)),
+    };
+    el.value = vals[k];
   });
 }
 
-function renderConvTable(){
-  const CURRS=[
-    {c:'USD',f:'🇺🇸',s:'$',d:0},{c:'EUR',f:'🇪🇺',s:'€',d:0},
-    {c:'GBP',f:'🇬🇧',s:'£',d:0},{c:'JPY',f:'🇯🇵',s:'¥',d:0},
-    {c:'BRL',f:'🇧🇷',s:'R$',d:0},{c:'CAD',f:'🇨🇦',s:'C$',d:0},
-    {c:'AUD',f:'🇦🇺',s:'A$',d:0},{c:'CHF',f:'🇨🇭',s:'Fr',d:0},
-    {c:'MXN',f:'🇲🇽',s:'$',d:0},{c:'INR',f:'🇮🇳',s:'₹',d:0},
-    {c:'KRW',f:'🇰🇷',s:'₩',d:0},{c:'ARS',f:'🇦🇷',s:'$',d:0},
+function initConverter() {
+  Object.entries(CINPS).forEach(([k]) =>
+    document.getElementById(CINPS[k].id)?.addEventListener('input', () => updateConv(k))
+  );
+  document.querySelectorAll('.qp').forEach(btn =>
+    btn.addEventListener('click', () => {
+      const el = document.getElementById('cBTC');
+      if (el) { el.value = btn.dataset.v; updateConv('BTC'); }
+    })
+  );
+}
+
+function renderConvTable() {
+  const CURRS = [
+    {c:'USD',f:'🇺🇸',s:'$'},{c:'EUR',f:'🇪🇺',s:'€'},{c:'GBP',f:'🇬🇧',s:'£'},
+    {c:'JPY',f:'🇯🇵',s:'¥'},{c:'BRL',f:'🇧🇷',s:'R$'},{c:'CAD',f:'🇨🇦',s:'C$'},
+    {c:'AUD',f:'🇦🇺',s:'A$'},{c:'CHF',f:'🇨🇭',s:'Fr'},{c:'MXN',f:'🇲🇽',s:'$'},
+    {c:'INR',f:'🇮🇳',s:'₹'},{c:'KRW',f:'🇰🇷',s:'₩'},{c:'ARS',f:'🇦🇷',s:'$'},
   ];
-  const p=btcNow();
-  const tb=document.getElementById('convTableBody');
-  if(!tb||!p)return;
-  tb.innerHTML='';
-  CURRS.forEach(cc=>{
-    const rate=cc.c==='USD'?1:(S.fx[cc.c]||null);
-    if(!rate)return;
-    const btcVal=p*rate;
-    const k1000=1000*rate;
-    const m1sat=(p/1e8)*rate;
-    const fmt=(v,dec=0)=>cc.s+v.toLocaleString('en-US',{maximumFractionDigits:dec,minimumFractionDigits:0});
-    const tr=document.createElement('tr');
-    tr.innerHTML=`<td class="td-flag">${cc.f}</td><td class="td-curr">${cc.c}</td><td class="td-val">${fmt(btcVal)}</td><td class="td-1k">${fmt(k1000)}</td><td class="td-1m">${fmt(m1sat,4)}</td>`;
-    tb.appendChild(tr);
-  });
+  const p = btcP(); const tb = document.getElementById('convTableBody');
+  if (!tb || !p) return;
+  tb.innerHTML = CURRS.map(cc => {
+    const rate = cc.c==='USD' ? 1 : (S.fx[cc.c]||null);
+    if (!rate) return '';
+    const fmt = v => cc.s + v.toLocaleString('en-US',{maximumFractionDigits:0});
+    return `<tr class="hover:bg-surface/50 transition-colors">
+      <td class="py-2.5 pr-3 text-lg">${cc.f}</td>
+      <td class="py-2.5 pr-4 font-mono text-sm text-slate-300 font-semibold">${cc.c}</td>
+      <td class="py-2.5 pr-4 font-mono text-sm text-white text-right">${fmt(p*rate)}</td>
+      <td class="py-2.5 pr-4 font-mono text-sm text-slate-400 text-right">${fmt(1000*rate)}</td>
+      <td class="py-2.5 font-mono text-sm text-slate-400 text-right">${cc.s}${((p/1e8)*rate).toFixed(4)}</td>
+    </tr>`;
+  }).join('');
 }
 
-// ─── DCA CALCULATOR ──────────────────────────
-function runDCA(){
-  const amount=parseFloat(document.getElementById('dcaAmt').value)||100;
-  const months=parseInt(document.getElementById('dcaMos').value)||24;
-  const startP=parseFloat(document.getElementById('dcaStart').value)||btcNow()||50000;
-  const exitP=parseFloat(document.getElementById('dcaExit').value)||0;
-  const freq=S.dcaFreq;
-  const ppm={daily:30,weekly:4.33,monthly:1}[freq];
-  const totalPeriods=Math.round(months*ppm);
-  const totalInvested=amount*totalPeriods;
-  const currentP=btcNow()||startP;
-
-  let totalBTC=0;
-  for(let i=0;i<totalPeriods;i++){
-    const t=i/(totalPeriods-1||1);
-    const price=startP+(currentP-startP)*t;
-    totalBTC+=amount/price;
+// ─── DCA ─────────────────────────────────────
+function runDCA() {
+  const amt   = parseFloat(document.getElementById('dcaAmt')?.value) || 100;
+  const mos   = parseInt(document.getElementById('dcaMos')?.value)   || 24;
+  const start = parseFloat(document.getElementById('dcaStart')?.value) || btcP() || 50000;
+  const exitP = parseFloat(document.getElementById('dcaExit')?.value) || 0;
+  const ppm   = {daily:30, weekly:4.33, monthly:1}[S.dcaFreq];
+  const total = Math.round(mos * ppm);
+  const invested = amt * total;
+  const cur   = btcP() || start;
+  let totalBTC = 0;
+  for (let i=0; i<total; i++) {
+    const t = i / (total-1||1);
+    totalBTC += amt / (start + (cur-start)*t);
   }
+  const curVal  = totalBTC * cur;
+  const exitVal = exitP ? totalBTC * exitP : 0;
+  const pnl     = curVal - invested;
+  const roi     = (pnl/invested)*100;
+  const avgBuy  = invested / totalBTC;
 
-  const currentVal=totalBTC*currentP;
-  const exitVal=exitP?totalBTC*exitP:0;
-  const pnl=currentVal-totalInvested;
-  const pnlPct=(pnl/totalInvested)*100;
-  const avgBuy=totalInvested/totalBTC;
+  const pnlColor = pnl>=0 ? 'text-acid' : 'text-ruby';
+  const roiColor = roi>=0 ? 'text-acid' : 'text-ruby';
 
-  const r=document.getElementById('dcaResults');
-  r.innerHTML=`
-    <div class="dca-res-grid">
-      <div class="dca-res-item"><div class="dca-res-lbl">Total Invested</div><div class="dca-res-val">$${F.p4(totalInvested)}</div><div class="dca-res-sub">${F.n(totalPeriods)} × $${amount} ${freq}</div></div>
-      <div class="dca-res-item"><div class="dca-res-lbl">BTC Accumulated</div><div class="dca-res-val" style="color:var(--btc)">₿ ${totalBTC.toFixed(6)}</div><div class="dca-res-sub">${F.n(Math.round(totalBTC*1e8))} sats</div></div>
-      <div class="dca-res-item"><div class="dca-res-lbl">Avg Buy Price</div><div class="dca-res-val">$${F.p(avgBuy)}</div><div class="dca-res-sub">avg cost basis</div></div>
-      <div class="dca-res-item"><div class="dca-res-lbl">Current Value</div><div class="dca-res-val">$${F.p4(currentVal)}</div><div class="dca-res-sub">at $${F.p(currentP)}</div></div>
-      <div class="dca-res-item"><div class="dca-res-lbl">Total P&L</div><div class="dca-res-val ${pnl>=0?'pos':'neg'}">${pnl>=0?'+':''}$${F.p4(Math.abs(pnl))}</div><div class="dca-res-sub">${F.pct(pnlPct)} return</div></div>
-      <div class="dca-res-item"><div class="dca-res-lbl">ROI</div><div class="dca-res-val ${pnlPct>=0?'pos':'neg'}">${F.pct(pnlPct)}</div><div class="dca-res-sub">on invested capital</div></div>
-      ${exitP?`<div class="dca-res-item" style="grid-column:span 2"><div class="dca-res-lbl">Value at Exit Target ($${F.p(exitP)})</div><div class="dca-res-val pos">$${F.p4(exitVal)}</div><div class="dca-res-sub">+${F.pct((exitVal-totalInvested)/totalInvested*100)} return at target</div></div>`:''}
+  document.getElementById('dcaResults').innerHTML = `
+    <div class="grid grid-cols-2 gap-3">
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Total Invested</p>
+        <p class="font-mono text-xl font-bold text-white">$${F.p2(invested)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">${F.n(total)} × $${amt} ${S.dcaFreq}</p>
+      </div>
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">BTC Accumulated</p>
+        <p class="font-mono text-xl font-bold text-btc">₿ ${totalBTC.toFixed(6)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">${F.n(Math.round(totalBTC*1e8))} sats</p>
+      </div>
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Avg Buy Price</p>
+        <p class="font-mono text-xl font-bold text-white">$${F.p(avgBuy)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">cost basis</p>
+      </div>
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">Current Value</p>
+        <p class="font-mono text-xl font-bold text-white">$${F.p2(curVal)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">at $${F.p(cur)}</p>
+      </div>
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">P&L</p>
+        <p class="font-mono text-xl font-bold ${pnlColor}">${pnl>=0?'+':''}$${F.p2(Math.abs(pnl))}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">${F.pct(roi)} return</p>
+      </div>
+      <div class="bg-deep border border-line rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase mb-2">ROI</p>
+        <p class="font-mono text-xl font-bold ${roiColor}">${F.pct(roi)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">on capital</p>
+      </div>
+      ${exitP ? `<div class="col-span-2 bg-acid/10 border border-acid/20 rounded-xl p-4">
+        <p class="font-mono text-[9px] tracking-widest text-acid uppercase mb-2">At Exit Target ($${F.p(exitP)})</p>
+        <p class="font-mono text-xl font-bold text-acid">$${F.p2(exitVal)}</p>
+        <p class="font-mono text-xs text-slate-500 mt-1">+${F.pct((exitVal-invested)/invested*100)} return at target</p>
+      </div>` : ''}
     </div>
-    <div class="dca-bar-section">
-      <div class="dca-bar-lbl">Invested vs Current Value</div>
-      <div style="display:flex;gap:8px;margin-bottom:6px">
-        <div style="flex:1">
-          <div style="font-family:var(--mono);font-size:10px;color:var(--t4);margin-bottom:4px">INVESTED</div>
-          <div class="dca-bar-track"><div class="dca-bar-fill dca-bar-invested" style="width:${Math.min(100,(totalInvested/Math.max(totalInvested,currentVal))*100)}%"></div></div>
+    <!-- Visual bar -->
+    <div class="mt-4 p-4 bg-deep border border-line rounded-xl">
+      <div class="flex justify-between font-mono text-[10px] text-slate-500 mb-2">
+        <span>INVESTED</span><span>CURRENT VALUE</span>
+      </div>
+      <div class="flex gap-2">
+        <div class="flex-1 h-2 bg-mute rounded-full overflow-hidden">
+          <div class="h-full rounded-full bg-gradient-to-r from-mute to-sky"
+               style="width:${Math.min(100,(invested/Math.max(invested,curVal))*100)}%"></div>
         </div>
-        <div style="flex:1">
-          <div style="font-family:var(--mono);font-size:10px;color:${pnl>=0?'var(--green)':'var(--red)'};margin-bottom:4px">CURRENT VALUE</div>
-          <div class="dca-bar-track"><div class="dca-bar-fill ${pnl>=0?'dca-bar-profit':'dca-bar-loss'}" style="width:${Math.min(100,(currentVal/Math.max(totalInvested,currentVal))*100)}%"></div></div>
+        <div class="flex-1 h-2 bg-line rounded-full overflow-hidden">
+          <div class="h-full rounded-full ${pnl>=0?'bg-gradient-to-r from-acid/50 to-acid':'bg-gradient-to-r from-ruby/50 to-ruby'}"
+               style="width:${Math.min(100,(curVal/Math.max(invested,curVal))*100)}%"></div>
         </div>
       </div>
     </div>
-    <div class="dca-periods-note">Strategy: $${amount} / ${freq} · ${months} months · ${F.n(totalPeriods)} total purchases · Start price $${F.p(startP)}</div>
+    <div class="mt-3 p-3 bg-deep border border-line/50 rounded-lg font-mono text-xs text-slate-500">
+      Strategy: $${amt}/${S.dcaFreq} · ${mos} months · ${F.n(total)} purchases · Start $${F.p(start)}
+    </div>
   `;
 }
 
-// ─── PORTFOLIO ───────────────────────────────
-function savePortfolio(){localStorage.setItem('bp_portfolio',JSON.stringify(S.portfolio))}
-function addPortfolioEntry(){
-  const btc=parseFloat(document.getElementById('portBTC').value)||0;
-  const cost=parseFloat(document.getElementById('portCost').value)||0;
-  if(!btc||!cost){toast('Enter BTC amount and buy price','error');return}
-  S.portfolio.push({btc,cost,id:Date.now()});
-  savePortfolio();
-  document.getElementById('portBTC').value='';
-  document.getElementById('portCost').value='';
-  updatePortfolioDisplay();
+// ─── PORTFOLIO ────────────────────────────────
+function savePort() { localStorage.setItem('bp_p', JSON.stringify(S.portfolio)); }
+function saveAlerts(){ localStorage.setItem('bp_a', JSON.stringify(S.alerts));   }
+
+function addPortEntry() {
+  const btc  = parseFloat(document.getElementById('portBTC')?.value)  || 0;
+  const cost = parseFloat(document.getElementById('portCost')?.value) || 0;
+  if (!btc || !cost) { toast('Enter BTC amount and buy price','error'); return; }
+  S.portfolio.push({btc, cost, id: Date.now()});
+  savePort();
+  document.getElementById('portBTC').value  = '';
+  document.getElementById('portCost').value = '';
+  updatePortfolio();
   toast('Entry added ✓','success');
 }
-function updatePortfolioDisplay(){
-  const p=btcNow();
-  const list=document.getElementById('portEntries');
-  if(!list)return;
-  if(!S.portfolio.length){
-    list.innerHTML='<div class="port-empty">No entries yet. Add your first BTC transaction above.</div>';
-    const summEl=document.getElementById('portSummary');
-    if(summEl)summEl.style.display='none';
+
+window.delPortEntry = function(id) {
+  S.portfolio = S.portfolio.filter(e => e.id!==id);
+  savePort();
+  updatePortfolio();
+  toast('Entry removed','warning');
+};
+
+function updatePortfolio() {
+  const p = btcP();
+  const list = document.getElementById('portEntries');
+  const sumEl = document.getElementById('portSummary');
+  if (!list) return;
+  if (!S.portfolio.length) {
+    list.innerHTML = '<p class="text-center font-mono text-xs text-slate-600 py-6">No entries yet.</p>';
+    if (sumEl) sumEl.classList.add('hidden');
+    setText('portBreakeven','—');
     return;
   }
-  list.innerHTML='';
-  let totalBTC=0,totalCost=0;
-  S.portfolio.forEach(e=>{
-    const curVal=e.btc*(p||0);
-    const pnl=curVal-(e.btc*e.cost);
-    const pnlPct=((pnl/(e.btc*e.cost))*100).toFixed(1);
-    const div=document.createElement('div');
-    div.className='port-entry';
-    div.innerHTML=`
-      <span class="port-entry-btc">₿${e.btc.toFixed(6)}</span>
-      <span class="port-entry-cost">@$${F.p(e.cost)}</span>
-      <span class="port-entry-val">$${F.p(curVal)}</span>
-      <span class="port-entry-pnl ${pnl>=0?'pos':'neg'}">${pnl>=0?'+':''}$${F.p(Math.abs(pnl))} (${pnlPct}%)</span>
-      <button class="port-del-btn" onclick="delPortEntry(${e.id})">✕</button>`;
-    list.appendChild(div);
-    totalBTC+=e.btc;
-    totalCost+=e.btc*e.cost;
-  });
-  const totalVal=totalBTC*(p||0);
-  const totalPnl=totalVal-totalCost;
-  const roi=((totalPnl/totalCost)*100).toFixed(2);
-  const avgBuy=totalCost/totalBTC;
-  setText('sumBTC','₿ '+totalBTC.toFixed(6));
-  setText('sumInvested','$'+F.p(totalCost));
-  setText('sumValue','$'+F.p(totalVal));
-  const pnlEl=document.getElementById('sumPnl');
-  if(pnlEl){pnlEl.textContent=(totalPnl>=0?'+':'')+'$'+F.p(Math.abs(totalPnl));pnlEl.className='port-sum-val '+(totalPnl>=0?'pos':'neg')}
-  setText('sumAvg','$'+F.p(avgBuy));
-  const roiEl=document.getElementById('sumROI');
-  if(roiEl){roiEl.textContent=(roi>=0?'+':'')+roi+'%';roiEl.className='port-sum-val '+(roi>=0?'pos':'neg')}
+  let totalBTC=0, totalCost=0;
+  list.innerHTML = S.portfolio.map(e => {
+    const curVal = e.btc * p;
+    const pnl    = curVal - (e.btc*e.cost);
+    const pnlPct = ((pnl/(e.btc*e.cost))*100).toFixed(1);
+    const pCol   = pnl>=0 ? 'text-acid':'text-ruby';
+    totalBTC  += e.btc;
+    totalCost += e.btc*e.cost;
+    return `<div class="flex items-center gap-3 bg-deep border border-line rounded-lg px-3 py-2.5 font-mono text-xs">
+      <span class="text-btc font-semibold">₿${e.btc.toFixed(6)}</span>
+      <span class="text-slate-500">@$${F.p(e.cost)}</span>
+      <span class="flex-1 text-right text-white">$${F.p(curVal)}</span>
+      <span class="${pCol}">${pnl>=0?'+':''}$${F.p(Math.abs(pnl))} (${pnlPct}%)</span>
+      <button onclick="delPortEntry(${e.id})" class="text-slate-600 hover:text-ruby transition-colors ml-1">✕</button>
+    </div>`;
+  }).join('');
+  const totalVal = totalBTC * p;
+  const totalPnl = totalVal - totalCost;
+  const roi = ((totalPnl/totalCost)*100).toFixed(2);
+  const avgBuy = totalCost / totalBTC;
+  setText('sumBTC',      '₿ '+totalBTC.toFixed(6));
+  setText('sumInvested', '$'+F.p(totalCost));
+  setText('sumValue',    '$'+F.p(totalVal));
+  setText('sumAvg',      '$'+F.p(avgBuy));
   setText('portBreakeven','$'+F.p(avgBuy));
-  const summEl=document.getElementById('portSummary');
-  if(summEl)summEl.style.display='grid';
-  // Simple portfolio sparkline
-  const data=S.portfolio.map(e=>e.btc*e.cost);
-  drawSparkline('portChart',data.length>1?data:[totalCost,totalVal],'#10d98a','#00ff88',true);
+  const pnlEl = document.getElementById('sumPnl');
+  const roiEl = document.getElementById('sumROI');
+  if (pnlEl){ pnlEl.textContent=(totalPnl>=0?'+':'')+'$'+F.p(Math.abs(totalPnl)); pnlEl.className='font-mono font-bold '+(totalPnl>=0?'text-acid':'text-ruby'); }
+  if (roiEl){ roiEl.textContent=(roi>=0?'+':'')+roi+'%'; roiEl.className='font-mono font-bold '+(roi>=0?'text-acid':'text-ruby'); }
+  if (sumEl) sumEl.classList.remove('hidden');
+  // Sparkline
+  const data = S.portfolio.map(e => e.btc*e.cost);
+  if (data.length < 2) data.push(totalVal);
+  setTimeout(() => sparkline('portCanvas', data, '#10d98a', 'rgba(16,217,138,.1)'), 80);
 }
-function delPortEntry(id){
-  S.portfolio=S.portfolio.filter(e=>e.id!==id);
-  savePortfolio();
-  updatePortfolioDisplay();
-  toast('Entry removed','warning');
-}
-window.delPortEntry=delPortEntry;
 
 // ─── ALERTS ──────────────────────────────────
-function saveAlerts(){localStorage.setItem('bp_alerts',JSON.stringify(S.alerts))}
-function addAlert(){
-  const type=document.getElementById('alertType').value;
-  const val=parseFloat(document.getElementById('alertVal').value);
-  if(!val){toast('Enter a valid target value','error');return}
-  S.alerts.push({type,val,id:Date.now(),triggered:false});
-  saveAlerts();
-  document.getElementById('alertVal').value='';
-  renderAlerts();
+function addAlert() {
+  const type = document.getElementById('alertType')?.value;
+  const val  = parseFloat(document.getElementById('alertVal')?.value);
+  if (!val) { toast('Enter a valid value','error'); return; }
+  S.alerts.push({type, val, id:Date.now(), triggered:false});
+  saveAlerts(); renderAlerts();
+  document.getElementById('alertVal').value = '';
   toast('Alert set ✓','success');
-  if(type!=='change') Notification.requestPermission();
+  Notification.requestPermission();
 }
-function delAlert(id){
-  S.alerts=S.alerts.filter(a=>a.id!==id);
-  saveAlerts();
-  renderAlerts();
-}
-window.delAlert=delAlert;
-function renderAlerts(){
-  const el=document.getElementById('alertsList');
-  if(!el)return;
-  if(!S.alerts.length){
-    el.innerHTML='<div style="color:var(--t4);font-family:var(--mono);font-size:13px;padding:20px 0;text-align:center">No alerts set.</div>';
+
+window.delAlert = function(id) {
+  S.alerts = S.alerts.filter(a => a.id!==id);
+  saveAlerts(); renderAlerts();
+};
+
+function renderAlerts() {
+  const el = document.getElementById('alertsList'); if (!el) return;
+  if (!S.alerts.length) {
+    el.innerHTML = '<p class="text-center font-mono text-xs text-slate-600 py-8">No alerts configured.</p>';
     return;
   }
-  el.innerHTML='';
-  S.alerts.forEach(a=>{
-    const div=document.createElement('div');
-    div.className='alert-item '+(a.triggered?(a.type==='above'?'triggered-up':'triggered-dn'):'');
-    const typeLabel={above:'Price ABOVE',below:'Price BELOW',change:'% Change ≥'}[a.type]||a.type;
-    const icon={above:'📈',below:'📉',change:'⚡'}[a.type]||'🔔';
-    div.innerHTML=`
-      <span class="alert-item-icon">${icon}</span>
-      <div class="alert-item-text">
-        <div class="alert-item-type">${typeLabel}</div>
-        <div class="alert-item-val">${a.type==='change'?a.val+'%':'$'+F.p(a.val)}</div>
+  const icons = {above:'📈', below:'📉', pct:'⚡'};
+  const typeLabel = {above:'Price ABOVE', below:'Price BELOW', pct:'% Change ≥'};
+  el.innerHTML = S.alerts.map(a => {
+    const tBorder = a.triggered ? (a.type==='above'?'border-acid/40 bg-acid/5':'border-ruby/40 bg-ruby/5') : 'border-line bg-deep';
+    const sBadge  = a.triggered ? 'text-btc' : 'text-acid';
+    return `<div class="flex items-center gap-3 border ${tBorder} rounded-xl px-4 py-3 mb-2.5">
+      <span class="text-xl">${icons[a.type]||'🔔'}</span>
+      <div class="flex-1">
+        <p class="font-mono text-[9px] tracking-widest text-slate-600 uppercase">${typeLabel[a.type]||a.type}</p>
+        <p class="font-mono text-sm font-semibold text-white">${a.type==='pct'?a.val+'%':'$'+F.p(a.val)}</p>
       </div>
-      <span class="alert-item-status ${a.triggered?'triggered':'active'}">${a.triggered?'✓ TRIGGERED':'● ACTIVE'}</span>
-      <button class="alert-del-btn" onclick="delAlert(${a.id})">✕</button>`;
-    el.appendChild(div);
-  });
+      <span class="font-mono text-[10px] ${sBadge}">${a.triggered?'✓ TRIGGERED':'● ACTIVE'}</span>
+      <button onclick="delAlert(${a.id})" class="font-mono text-slate-600 hover:text-ruby transition-colors text-sm ml-1">✕</button>
+    </div>`;
+  }).join('');
 }
-function checkAlerts(price){
-  let changed=false;
-  S.alerts.forEach(a=>{
-    if(a.triggered)return;
-    let fire=false;
-    if(a.type==='above'&&price>=a.val)fire=true;
-    if(a.type==='below'&&price<=a.val)fire=true;
-    if(fire){
-      a.triggered=true;changed=true;
-      const msg=`₿ BTC ${a.type==='above'?'hit':'dropped to'} $${F.p(price)}!`;
+
+function checkAlerts(price) {
+  let changed = false;
+  S.alerts.forEach(a => {
+    if (a.triggered) return;
+    const fire = (a.type==='above' && price>=a.val) || (a.type==='below' && price<=a.val);
+    if (fire) {
+      a.triggered = true; changed = true;
+      const msg = `₿ BTC ${a.type==='above'?'crossed above':'dropped below'} $${F.p(a.val)}!`;
       toast(msg,'warning');
-      if(Notification.permission==='granted')new Notification('BITPULSE Alert 🔔',{body:msg,icon:'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><text y=".9em" font-size="90">₿</text></svg>'});
+      if (Notification.permission==='granted')
+        new Notification('BITPULSE Alert 🔔',{body:msg});
     }
   });
-  if(changed){saveAlerts();renderAlerts()}
+  if (changed) { saveAlerts(); renderAlerts(); }
 }
 
-// ─── NEWS ─────────────────────────────────────
-function renderNews(items){
-  const g=document.getElementById('newsGrid');
-  if(!g)return;
-  if(!items||!items.length){
-    g.innerHTML=`<div class="news-empty"><div style="font-size:32px;margin-bottom:10px">📰</div>
-    <strong>News feed unavailable</strong><br><span style="font-size:12px;color:var(--t4)">CryptoPanic API requires registration for live data.<br>Visit <a href="https://cryptopanic.com" target="_blank" style="color:var(--btc)">cryptopanic.com</a> for the latest Bitcoin news.</span></div>`;
-    return;
-  }
-  g.innerHTML='';
-  items.forEach(n=>{
-    const date=new Date(n.created_at).toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
-    const div=document.createElement('div');
-    div.className='news-card';
-    div.innerHTML=`
-      <div class="news-source">${n.source?.title||'CryptoPanic'}</div>
-      <div class="news-title">${n.title}</div>
-      <div class="news-date">${date}</div>
-      <a class="news-link" href="${n.url}" target="_blank" rel="noopener">Read article →</a>`;
-    g.appendChild(div);
-  });
-}
-
-// ─── MAIN REFRESH ─────────────────────────────
-async function refresh(){
-  try{
-    const [btc,global,coins,height,fg,fx,mp,fees]=await Promise.allSettled([
-      fetchBTC(),fetchGlobal(),fetchTopCoins(),fetchBlockHeight(),
-      fetchFearGreed(),fetchFX(),fetchMempool(),fetchFees()
+// ─── REFRESH LOOP ─────────────────────────────
+async function refresh() {
+  try {
+    const [btc,gl,coins,h,fg,fx,mp,fees] = await Promise.allSettled([
+      fetchBTC(), fetchGlobal(), fetchCoins(), fetchBlock(),
+      fetchFG(), fetchFX(), fetchMem(), fetchFees()
     ]);
-    if(btc.status==='fulfilled')S.btc=btc.value;
-    if(global.status==='fulfilled')S.global=global.value;
-    if(coins.status==='fulfilled')S.topCoins=coins.value;
-    if(height.status==='fulfilled')S.blockHeight=height.value||S.blockHeight;
-    if(fg.status==='fulfilled')S.fearGreed=fg.value;
-    if(fx.status==='fulfilled')S.fx=fx.value;
-    if(mp.status==='fulfilled'&&mp.value)setText('ocMempool',F.n(mp.value.count||0));
-    if(fees.status==='fulfilled'&&fees.value)setText('ocFee',fees.value.halfHourFee||'—');
-    renderDashboard();
+    if (btc.status==='fulfilled')   S.btc   = btc.value;
+    if (gl.status==='fulfilled')    S.global = gl.value;
+    if (coins.status==='fulfilled') S.coins  = coins.value;
+    if (h.status==='fulfilled')     S.blockH = h.value || S.blockH;
+    if (fg.status==='fulfilled')    S.fg     = fg.value;
+    if (fx.status==='fulfilled')    S.fx     = fx.value;
+    if (mp.status==='fulfilled' && mp.value) setText('ocMempool', F.n(mp.value.count||0));
+    if (fees.status==='fulfilled' && fees.value) setText('ocFee', (fees.value.halfHourFee||'—')+' sat/vB');
+    renderDash();
     renderConvTable();
-    updateConv('BTC');
-    startHalvingTimer();
-    // News (fetch once)
-    if(!S.newsFetched){
-      S.newsFetched=true;
-      fetchNews().then(renderNews);
-    }
-    document.getElementById('tbTime').textContent=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
-  }catch(e){
-    console.warn('Refresh error:',e);
+    startHalvTimer();
+  } catch(e) {
+    console.warn('Refresh error:', e);
     toast('Data refresh failed — retrying…','error');
   }
 }
 
-// ─── REFRESH COUNTDOWN ───────────────────────
-function startRefreshCountdown(){
-  S.refreshIn=60;
-  if(S.rcTimer)clearInterval(S.rcTimer);
-  S.rcTimer=setInterval(()=>{
+function startCountdown() {
+  S.refreshIn = 60;
+  if (S._rcT) clearInterval(S._rcT);
+  S._rcT = setInterval(() => {
     S.refreshIn--;
-    const el=document.getElementById('ftRefresh');
-    if(el)el.textContent=`Next refresh in ${S.refreshIn}s`;
-    if(S.refreshIn<=0){S.refreshIn=60;refresh()}
-  },1000);
+    setText('ftRefresh', `Refresh in ${S.refreshIn}s`);
+    if (S.refreshIn <= 0) { S.refreshIn = 60; refresh(); }
+  }, 1000);
 }
 
 // ─── NAV ──────────────────────────────────────
-function initNav(){
-  document.querySelectorAll('.tb-link').forEach(btn=>{
-    btn.addEventListener('click',()=>{
-      const pg=btn.dataset.page;
-      document.querySelectorAll('.tb-link').forEach(b=>b.classList.remove('active'));
-      document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+function initNav() {
+  document.querySelectorAll('.nav-link').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const pg = btn.dataset.page;
+      document.querySelectorAll('.nav-link').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
       btn.classList.add('active');
-      const pageEl=document.getElementById('page-'+pg);
-      if(pageEl)pageEl.classList.add('active');
-      if(pg==='portfolio')updatePortfolioDisplay();
-      if(pg==='alerts')renderAlerts();
+      const pageEl = document.getElementById('page-'+pg);
+      if (pageEl) pageEl.classList.add('active');
+      // Lazy-load chart
+      if (pg==='chart' && !S.tvLoaded) {
+        loadTVWidget(S.currentSym, S.currentInt);
+        S.tvLoaded = true;
+      }
+      // Lazy-load news
+      if (pg==='news' && !S.newsLoaded) {
+        S.newsLoaded = true;
+        loadNews();
+      }
     });
   });
 }
 
-// ─── DCA TOGGLES ─────────────────────────────
-function initDCATgls(){
-  document.querySelectorAll('.tgl').forEach(t=>{
-    t.addEventListener('click',()=>{
-      document.querySelectorAll('.tgl').forEach(x=>x.classList.remove('on'));
-      t.classList.add('on');
-      S.dcaFreq=t.dataset.f;
+// ─── CHART CONTROLS ───────────────────────────
+function initChartControls() {
+  document.querySelectorAll('.chart-sym-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.chart-sym-btn').forEach(b => b.classList.remove('active-sym'));
+      btn.classList.add('active-sym');
+      S.currentSym = btn.dataset.sym;
+      S.tvLoaded = false;
+      loadTVWidget(S.currentSym, S.currentInt);
+      S.tvLoaded = true;
     });
   });
-  document.getElementById('dcaRunBtn')?.addEventListener('click',runDCA);
+  document.querySelectorAll('.chart-int-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.chart-int-btn').forEach(b => b.classList.remove('active-int'));
+      btn.classList.add('active-int');
+      S.currentInt = btn.dataset.int;
+      S.tvLoaded = false;
+      loadTVWidget(S.currentSym, S.currentInt);
+      S.tvLoaded = true;
+    });
+  });
+}
+
+// ─── DCA TOGGLES ──────────────────────────────
+function initDCA() {
+  document.querySelectorAll('.dca-tgl').forEach(t => {
+    t.addEventListener('click', () => {
+      document.querySelectorAll('.dca-tgl').forEach(x => {
+        x.className = 'dca-tgl flex-1 py-2.5 rounded-lg font-mono text-sm border border-line bg-deep text-slate-400 hover:border-mute transition-all';
+        x.dataset.f;
+      });
+      t.className = 'dca-tgl flex-1 py-2.5 rounded-lg font-mono text-sm border border-btc/40 bg-btc/10 text-btc';
+      S.dcaFreq = t.dataset.f;
+    });
+  });
+  document.getElementById('dcaRunBtn')?.addEventListener('click', runDCA);
 }
 
 // ─── ALERT TYPE LABEL ────────────────────────
-document.getElementById('alertType')?.addEventListener('change',e=>{
-  const lbl=document.getElementById('alertInpLabel');
-  if(!lbl)return;
-  lbl.textContent=e.target.value==='change'?'% Change Threshold':'Target Price (USD)';
+document.getElementById('alertType')?.addEventListener('change', e => {
+  const lbl = document.getElementById('alertValLabel');
+  if (lbl) lbl.textContent = e.target.value==='pct' ? '% Change Threshold' : 'Target Price (USD)';
 });
 
-// ─── INIT ─────────────────────────────────────
-async function init(){
+// ─── NEWS REFRESH BTN ────────────────────────
+document.getElementById('newsRefreshBtn')?.addEventListener('click', () => {
+  S.newsLoaded = true;
+  loadNews();
+});
+
+// ─── MAIN INIT ────────────────────────────────
+async function init() {
+  startClock();
   initNav();
   initConverter();
-  initDCATgls();
-  document.getElementById('portAddBtn')?.addEventListener('click',addPortfolioEntry);
-  document.getElementById('alertAddBtn')?.addEventListener('click',addAlert);
+  initDCA();
+  initChartControls();
+  document.getElementById('portAddBtn')?.addEventListener('click', addPortEntry);
+  document.getElementById('alertAddBtn')?.addEventListener('click', addAlert);
+  renderAlerts();
   await refresh();
-  startRefreshCountdown();
+  startCountdown();
 }
 
-document.addEventListener('DOMContentLoaded',init);
+document.addEventListener('DOMContentLoaded', init);
 </script>
 </body>
 </html>
